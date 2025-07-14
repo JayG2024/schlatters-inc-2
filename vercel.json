@@ -1,0 +1,38 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/auth/[...auth].ts": {
+      "maxDuration": 30
+    },
+    "api/quickbooks/[...quickbooks].ts": {
+      "maxDuration": 30
+    },
+    "api/openphone/[...openphone].ts": {
+      "maxDuration": 30
+    },
+    "api/google/[...google].ts": {
+      "maxDuration": 30
+    },
+    "api/webhooks/openphone.ts": {
+      "maxDuration": 30
+    },
+    "api/webhooks/quickbooks.ts": {
+      "maxDuration": 30
+    },
+    "api/calls/transcripts.ts": {
+      "maxDuration": 30
+    }
+  }
+}
