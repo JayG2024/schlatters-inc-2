@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, X, Search, User, Lock, Bell, Globe, Brush, Volume2, MousePointer, HelpCircle, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/SupabaseAuthContext';
 
 interface SettingsButtonProps {
   className?: string;
@@ -16,7 +16,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ className }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,7 +151,7 @@ const SettingsButton: React.FC<SettingsButtonProps> = ({ className }) => {
 
             <button
               className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400"
-              onClick={logout}
+              onClick={signOut}
             >
               <LogOut size={16} />
               <span className="text-sm">Sign Out</span>

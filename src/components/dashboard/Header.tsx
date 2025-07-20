@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell, Search, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/SupabaseAuthContext';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotificationDropdown from '../ui/NotificationDropdown';
 import SettingsButton from '../ui/SettingsButton';
@@ -65,15 +65,15 @@ const Header: React.FC<HeaderProps> = ({
         <SettingsButton />
         
         <div className="relative">
-          {user?.avatar ? (
+          {false ? (
             <img 
-              src={user.avatar} 
-              alt={user.name} 
+              src="" 
+              alt={user?.email || 'User'} 
               className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
             />
           ) : (
             <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-400 font-medium border border-gray-200 dark:border-gray-700">
-              {user?.name?.[0] || 'U'}
+              {user?.email?.[0].toUpperCase() || 'U'}
             </div>
           )}
         </div>

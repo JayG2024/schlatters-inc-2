@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/dashboard/Sidebar';
 import Header from '../../components/dashboard/Header';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/SupabaseAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 // Import pages
@@ -107,40 +107,19 @@ const AdminDashboard = () => {
     setIsProcessingQuery(true);
     setAiResponse(null);
     
-    // Simulate AI processing
+    // TODO: Implement actual AI query processing with Supabase and API
+    // For now, show a placeholder message
     setTimeout(() => {
-      // Check if the query matches any of our mock responses
-      const exactMatch = mockAIResponses[aiQuery as keyof typeof mockAIResponses];
-      
-      // If we have an exact match, use it
-      if (exactMatch) {
-        setAiResponse(exactMatch);
-      } else {
-        // Otherwise, try to find a partial match
-        const lowerQuery = aiQuery.toLowerCase();
-        if (lowerQuery.includes('overdue') || lowerQuery.includes('invoice')) {
-          setAiResponse(mockAIResponses["Show overdue invoices"]);
-        } else if (lowerQuery.includes('call') || lowerQuery.includes('summary')) {
-          setAiResponse(mockAIResponses["Call summary for today"]);
-        } else if (lowerQuery.includes('customer') || lowerQuery.includes('revenue')) {
-          setAiResponse(mockAIResponses["Top customers by revenue"]);
-        } else if (lowerQuery.includes('team') || lowerQuery.includes('performance')) {
-          setAiResponse(mockAIResponses["Team performance this week"]);
-        } else {
-          // Generic response for unmatched queries
-          setAiResponse({
-            type: "generic",
-            title: "AI Response",
-            data: {
-              message: "I've analyzed your query and found the following information that might be helpful.",
-              suggestion: "Try asking about overdue invoices, call summaries, customer revenue, or team performance."
-            }
-          });
+      setAiResponse({
+        type: "generic",
+        title: "AI Response",
+        data: {
+          message: "AI query processing will be implemented with actual API integration.",
+          suggestion: "This feature will be connected to your AI backend soon."
         }
-      }
-      
+      });
       setIsProcessingQuery(false);
-    }, 2000);
+    }, 1000);
   };
 
   const getSentimentColor = (sentiment: string) => {
@@ -403,7 +382,7 @@ const AdminDashboard = () => {
                   {/* Enhanced Header */}
                   <Header 
                     title="Schlatter's Inc Dashboard"
-                    subtitle={`Welcome back, ${user?.name}. Here's your business overview for today.`}
+                    subtitle={`Welcome back, ${user?.email || 'Admin'}. Here's your business overview for today.`}
                     notifications={notifications}
                     onMarkAsRead={handleMarkAsRead}
                     onMarkAllAsRead={handleMarkAllAsRead}

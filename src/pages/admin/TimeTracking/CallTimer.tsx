@@ -26,82 +26,18 @@ const CallTimer: React.FC = () => {
   const [isBillable, setIsBillable] = useState(true);
   const [recordingEnabled, setRecordingEnabled] = useState(true);
 
-  // Mock clients and projects for the demo
-  const mockClients = [
-    { id: '1', name: 'Acme Corp' },
-    { id: '2', name: 'TechSolutions Inc' },
-    { id: '3', name: 'Global Ventures' },
-    { id: '4', name: 'Innovate LLC' },
-    { id: '5', name: 'Premier Services' }
-  ];
+  // TODO: Fetch clients and projects from Supabase
+  const mockClients: { id: string; name: string }[] = [];
   
-  const mockProjects = [
-    { id: '1', name: 'Implementation', client: '1' },
-    { id: '2', name: 'Consulting', client: '1' },
-    { id: '3', name: 'Training', client: '2' },
-    { id: '4', name: 'Support', client: '3' },
-    { id: '5', name: 'Strategy', client: '4' },
-    { id: '6', name: 'Technical Support', client: '5' }
-  ];
+  const mockProjects: { id: string; name: string; client: string }[] = [];
 
   // Filter projects based on selected client
   const filteredProjects = selectedClient
     ? mockProjects.filter(project => project.client === selectedClient)
     : [];
 
-  // Mock recent calls
-  const recentCalls = [
-    {
-      id: '1',
-      client: 'TechSolutions Inc',
-      project: 'Technical Support',
-      description: 'Technical Support Call',
-      duration: '00:45:12',
-      timestamp: 'Today at 10:30 AM',
-      billable: true,
-      notes: 'Discussed technical issues with the client\'s integration. Provided solutions for API connection problems.'
-    },
-    {
-      id: '2',
-      client: 'Global Ventures',
-      project: 'Quarterly Review',
-      description: 'Quarterly Review Meeting',
-      duration: '01:15:30',
-      timestamp: 'Yesterday at 2:00 PM',
-      billable: true,
-      notes: 'Reviewed Q1 performance metrics. Client satisfied with progress. Discussed strategy for Q2.'
-    },
-    {
-      id: '3',
-      client: 'Internal',
-      project: 'Team Meeting',
-      description: 'Internal Team Meeting',
-      duration: '00:30:45',
-      timestamp: 'Yesterday at 9:00 AM',
-      billable: false,
-      notes: 'Weekly team sync. Discussed current projects and resource allocation.'
-    },
-    {
-      id: '4',
-      client: 'Acme Corp',
-      project: 'Implementation',
-      description: 'Implementation Planning',
-      duration: '00:55:20',
-      timestamp: '2 days ago at 11:15 AM',
-      billable: true,
-      notes: 'Planned implementation timeline and resource requirements. Set up follow-up meeting for next week.'
-    },
-    {
-      id: '5',
-      client: 'Premier Services',
-      project: 'Support',
-      description: 'Support Call - Login Issues',
-      duration: '00:22:10',
-      timestamp: '3 days ago at 3:30 PM',
-      billable: true,
-      notes: 'Helped client resolve login issues. Recommended password reset and 2FA setup.'
-    }
-  ];
+  // TODO: Fetch recent calls from Supabase
+  const recentCalls: any[] = [];
 
   return (
     <div className="space-y-6">

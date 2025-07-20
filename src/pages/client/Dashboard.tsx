@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/dashboard/Sidebar';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/SupabaseAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { 
   Search, 
@@ -51,11 +51,34 @@ const ClientDashboard = () => {
   const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'billing'>('overview');
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Initialize empty state for data to be fetched from Supabase
+  const [planInfo, setPlanInfo] = useState<any>({
+    tier: 'Loading...',
+    renewalDate: 'Loading...',
+    textUsage: { used: 0, total: 0 },
+    callUsage: { used: 0, total: 0 },
+    consultingUsage: { used: 0, total: 0 }
+  });
+  const [communications, setCommunications] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [estimates, setEstimates] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [clientTimeEntries, setClientTimeEntries] = useState<any[]>([]);
+  const [serviceHistory, setServiceHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    // Simulate loading data
+    // TODO: Fetch actual data from Supabase
+    // For now, simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false);
+      // TODO: Add actual data fetching logic here
+      // setPlanInfo(fetchedPlanInfo);
+      // setCommunications(fetchedCommunications);
+      // setAppointments(fetchedAppointments);
+      // etc.
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -87,7 +110,7 @@ const ClientDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Client Dashboard</h1>
-                      <p className="text-gray-600 dark:text-gray-400 mt-1">Welcome back, {user?.name}</p>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">Welcome back, {user?.email || 'User'}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -163,7 +186,7 @@ const ClientDashboard = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Plan</p>
-                                <p className="text-xl font-bold mt-1 text-gray-900 dark:text-gray-100">{mockPlanInfo.tier} Plan</p>
+                                <p className="text-xl font-bold mt-1 text-gray-900 dark:text-gray-100">{planInfo.tier} Plan</p>
                               </div>
                               <div className="p-3 bg-blue-50 dark:bg-blue-900/50 rounded-lg">
                                 <Users size={20} className="text-blue-600 dark:text-blue-400" />
@@ -171,7 +194,7 @@ const ClientDashboard = () => {
                             </div>
                             <div className="mt-3 text-xs font-medium text-gray-600 dark:text-gray-400">
                               <span>Renews: </span>
-                              <span>{mockPlanInfo.renewalDate}</span>
+                              <span>{planInfo.renewalDate}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -258,7 +281,7 @@ const ClientDashboard = () => {
                               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Core CRM services including client database management and relationship tracking</p>
                               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                                 <span>Since: Apr 1, 2025</span>
-                                <span>Tier: {mockPlanInfo.tier}</span>
+                                <span>Tier: {planInfo.tier}</span>
                               </div>
                             </div>
                             
@@ -292,7 +315,7 @@ const ClientDashboard = () => {
                       {/* Primary Widgets */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <CommunicationWidget 
-                          communications={mockCommunications}
+                          communications={communications}
                           onViewAll={() => {}}
                           onCall={(phone) => {}}
                           onText={(phone) => {}}
@@ -300,7 +323,7 @@ const ClientDashboard = () => {
                         />
                         
                         <CalendarWidget 
-                          appointments={mockAppointments}
+                          appointments={appointments}
                           onViewAll={() => {}}
                           onAddAppointment={() => {}}
                           className="col-span-1"
@@ -310,7 +333,7 @@ const ClientDashboard = () => {
                       {/* Secondary Widgets */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <SupportWidget 
-                          tickets={mockTickets}
+                          tickets={tickets}
                           onViewAll={() => {}}
                           onCreateTicket={() => {}}
                           onViewTicket={(id) => {}}
@@ -319,7 +342,7 @@ const ClientDashboard = () => {
                         />
                         
                         <EstimatesWidget 
-                          estimates={mockEstimates}
+                          estimates={estimates}
                           onViewAll={() => {}}
                           onCreateEstimate={() => {}}
                           onApproveEstimate={(id) => {}}
@@ -330,7 +353,7 @@ const ClientDashboard = () => {
                         />
                         
                         <PlanUsageWidget 
-                          planInfo={mockPlanInfo} 
+                          planInfo={planInfo} 
                           onUpgrade={() => {}} 
                         />
                       </div>
@@ -338,7 +361,7 @@ const ClientDashboard = () => {
                       {/* Financial Status and Document Management */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InvoiceWidget 
-                          invoices={mockInvoices}
+                          invoices={invoices}
                           onViewAll={() => {}}
                           onPayInvoice={() => {}}
                           onDownloadInvoice={() => {}}
@@ -347,7 +370,7 @@ const ClientDashboard = () => {
                         />
                         
                         <DocumentsWidget 
-                          documents={mockDocuments}
+                          documents={documents}
                           onViewAll={() => {}}
                           onUploadDocument={() => {}}
                           onDownloadDocument={() => {}}
@@ -370,14 +393,14 @@ const ClientDashboard = () => {
                           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                             <div>
                               <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium mb-2">
-                                {mockPlanInfo.tier} Plan
+                                {planInfo.tier} Plan
                               </span>
                               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Business Service Package</h3>
                               <p className="text-gray-600 dark:text-gray-400 mt-1">Comprehensive CRM and client management solution</p>
                             </div>
                             <div className="mt-4 md:mt-0">
                               <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(1500)}/month</div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Next renewal: {mockPlanInfo.renewalDate}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Next renewal: {planInfo.renewalDate}</div>
                               <Button size="sm" className="mt-3">Manage Plan</Button>
                             </div>
                           </div>
@@ -449,7 +472,7 @@ const ClientDashboard = () => {
                           </div>
                           
                           <PlanUsageWidget 
-                            planInfo={mockPlanInfo} 
+                            planInfo={planInfo} 
                             onUpgrade={() => {}} 
                           />
                         </div>
@@ -466,17 +489,17 @@ const ClientDashboard = () => {
                             <div className="bg-navy-50 dark:bg-blue-900/20 rounded-lg p-5">
                               <h3 className="font-medium text-navy-800 dark:text-blue-300 mb-3">Consulting Hours</h3>
                               <div className="text-3xl font-bold text-navy-800 dark:text-blue-200 mb-2">
-                                {mockPlanInfo.consultingUsage.used} / {mockPlanInfo.consultingUsage.total}
+                                {planInfo.consultingUsage.used} / {planInfo.consultingUsage.total}
                               </div>
                               <Progress 
-                                value={(mockPlanInfo.consultingUsage.used / mockPlanInfo.consultingUsage.total) * 100} 
-                                variant={mockPlanInfo.consultingUsage.used / mockPlanInfo.consultingUsage.total > 0.8 ? 'warning' : 'default'}
+                                value={(planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100} 
+                                variant={planInfo.consultingUsage.used / planInfo.consultingUsage.total > 0.8 ? 'warning' : 'default'}
                               />
                               <p className="text-sm text-navy-600 dark:text-blue-300 mt-3">
-                                {mockPlanInfo.consultingUsage.used === mockPlanInfo.consultingUsage.total ? (
+                                {planInfo.consultingUsage.used === planInfo.consultingUsage.total ? (
                                   "You've used all your allocated consulting hours"
                                 ) : (
-                                  `${mockPlanInfo.consultingUsage.total - mockPlanInfo.consultingUsage.used} hours remaining this cycle`
+                                  `${planInfo.consultingUsage.total - planInfo.consultingUsage.used} hours remaining this cycle`
                                 )}
                               </p>
                             </div>
@@ -484,7 +507,7 @@ const ClientDashboard = () => {
                             <div className="bg-gray-50 dark:bg-gray-800/80 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
                               <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-3">Recent Consulting Activity</h3>
                               <div className="space-y-3">
-                                {mockClientTimeEntries.slice(0, 3).map((entry, index) => (
+                                {clientTimeEntries.slice(0, 3).map((entry, index) => (
                                   <div key={index} className="flex justify-between items-start border-b border-gray-200 dark:border-gray-700 pb-3">
                                     <div>
                                       <div className="font-medium text-gray-900 dark:text-gray-100">{entry.description}</div>
@@ -555,7 +578,7 @@ const ClientDashboard = () => {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                              {mockServiceHistory.map((service) => (
+                              {serviceHistory.map((service) => (
                                 <tr key={service.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/70">
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {service.type}
@@ -625,7 +648,7 @@ const ClientDashboard = () => {
                       
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <InvoiceWidget 
-                          invoices={mockInvoices}
+                          invoices={invoices}
                           onViewAll={() => {}}
                           onPayInvoice={(id) => {}}
                           onDownloadInvoice={(id) => {}}
@@ -634,7 +657,7 @@ const ClientDashboard = () => {
                         />
                         
                         <EstimatesWidget 
-                          estimates={mockEstimates}
+                          estimates={estimates}
                           onViewAll={() => {}}
                           onCreateEstimate={() => {}}
                           onApproveEstimate={(id) => {}}

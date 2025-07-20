@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/SupabaseAuthContext';
 import { cn } from '../lib/utils';
 import { LogIn, AlertCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  const { signIn, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -18,9 +18,11 @@ const Login = () => {
     setError('');
     
     try {
-      await login(email, password);
-      const redirectPath = email.includes('admin') ? '/admin' : '/client';
-      navigate(redirectPath);
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError(error.message || 'Invalid email or password');
+      }
+      // Navigation is handled by SupabaseAuthProvider
     } catch (err) {
       setError('Invalid email or password');
     }

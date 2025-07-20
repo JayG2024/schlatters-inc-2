@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { NavLink, useLocation, Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/SupabaseAuthContext';
 import { 
   ChevronDown, 
   ChevronRight,
@@ -124,7 +124,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ type }) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -310,25 +310,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ type }) => {
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           {!isCollapsed ? (
             <div className="flex items-center">
-              {user?.avatar ? (
+              {false ? (
                 <img
-                  src={user.avatar}
-                  alt={user.name}
+                  src=""
+                  alt={user?.email || 'User'}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-brand-gold/20 dark:bg-brand-gold/30 text-brand-gold-dark dark:text-brand-gold flex items-center justify-center font-medium">
-                  {user?.name?.charAt(0) || 'U'}
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
               <div className="ml-3 flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {user?.name || 'User'}
+                  {user?.email || 'User'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
               <button
-                onClick={logout}
+                onClick={signOut}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title="Logout"
               >
@@ -337,19 +337,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ type }) => {
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-3">
-              {user?.avatar ? (
+              {false ? (
                 <img
-                  src={user.avatar}
-                  alt={user.name}
+                  src=""
+                  alt={user?.email || 'User'}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-brand-gold/20 dark:bg-brand-gold/30 text-brand-gold-dark dark:text-brand-gold flex items-center justify-center font-medium">
-                  {user?.name?.charAt(0) || 'U'}
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
               <button
-                onClick={logout}
+                onClick={signOut}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title="Logout"
               >
