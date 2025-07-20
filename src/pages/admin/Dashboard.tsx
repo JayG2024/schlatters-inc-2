@@ -30,6 +30,7 @@ import Button from '../../components/ui/Button';
 import KPICard from '../../components/ui/KPICard';
 import NotificationDropdown from '../../components/ui/NotificationDropdown';
 import ThemeToggle from '../../components/ui/ThemeToggle';
+import DashboardErrorBoundary from '../../components/DashboardErrorBoundary';
 
 // Icons
 import { 
