@@ -391,8 +391,9 @@ const AdminDashboard = () => {
                   />
 
                   {/* Enhanced Key Performance Indicators */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <KPICard
+                  <DashboardErrorBoundary section="Key Performance Indicators">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <KPICard
                       title="Active Customers"
                       value="0"
                       icon={<Users size={24} />}
@@ -439,7 +440,8 @@ const AdminDashboard = () => {
                       }}
                       iconColor="bg-amber-50 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"
                     />
-                  </div>
+                    </div>
+                  </DashboardErrorBoundary>
 
                   {/* AI Query Box - Moved to middle of dashboard */}
                   <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
@@ -542,7 +544,8 @@ const AdminDashboard = () => {
                   {/* Recent Call Activity and Outstanding Invoices */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Recent Call Activity */}
-                    <Card>
+                    <DashboardErrorBoundary section="Recent Call Activity">
+                      <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                           <PhoneCall size={20} className="text-green-600 dark:text-green-400" />
@@ -585,9 +588,11 @@ const AdminDashboard = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </DashboardErrorBoundary>
 
                     {/* Outstanding Invoices */}
-                    <Card>
+                    <DashboardErrorBoundary section="Outstanding Invoices">
+                      <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                           <FileText size={20} className="text-amber-600 dark:text-amber-400" />
@@ -627,10 +632,12 @@ const AdminDashboard = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </DashboardErrorBoundary>
                   </div>
 
                   {/* Team Activity Feed */}
-                  <Card>
+                  <DashboardErrorBoundary section="Team Activity Feed">
+                    <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                         <Users size={20} className="text-indigo-600 dark:text-indigo-400" />
@@ -658,6 +665,7 @@ const AdminDashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
+                  </DashboardErrorBoundary>
                 </div>
               )
             } 

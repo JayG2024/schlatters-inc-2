@@ -36,6 +36,7 @@ import DocumentsWidget from '../../components/dashboard/widgets/DocumentsWidget'
 import TimeTrackingWidget from '../../components/dashboard/widgets/TimeTrackingWidget';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
+import DashboardErrorBoundary from '../../components/DashboardErrorBoundary';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Progress from '../../components/ui/Progress';
@@ -180,8 +181,9 @@ const ClientDashboard = () => {
                   {activeTab === 'overview' && (
                     <>
                       {/* Key Summary Stats */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <Card className="bg-white dark:bg-gray-800">
+                      <DashboardErrorBoundary section="Key Summary Stats">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                          <Card className="bg-white dark:bg-gray-800">
                           <CardContent className="p-6">
                             <div className="flex justify-between items-center">
                               <div>
@@ -252,7 +254,8 @@ const ClientDashboard = () => {
                             </div>
                           </CardContent>
                         </Card>
-                      </div>
+                        </div>
+                      </DashboardErrorBoundary>
                       
                       {/* Current Services */}
                       <Card className="bg-white dark:bg-gray-800 mb-6">
@@ -313,8 +316,9 @@ const ClientDashboard = () => {
                       </Card>
                       
                       {/* Primary Widgets */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <CommunicationWidget 
+                      <DashboardErrorBoundary section="Primary Widgets">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <CommunicationWidget 
                           communications={communications}
                           onViewAll={() => {}}
                           onCall={(phone) => {}}
