@@ -4,12 +4,12 @@ A specialized CRM and billing system for phone-based technical support services.
 
 ## 🚀 Quick Start
 
-1. **Add Environment Variables**: Run `./setup-vercel-env.sh`
+1. **Add Environment Variables**: Copy `.env.example` to `.env.local` and fill in all required values.
 2. **Run Database Migration**: Copy `supabase/migrations/001_initial_schema.sql` to Supabase SQL Editor
 3. **Deploy**: `vercel --prod` or push to GitHub
 4. **Configure Webhooks**: See SETUP_GUIDE.md for details
 
-## 📋 Features
+## 🛠️ Features
 
 - **Live Call Tracking**: Real-time phone support queue with automatic caller identification
 - **Subscription Management**: Track annual subscriptions with included hours
@@ -20,7 +20,7 @@ A specialized CRM and billing system for phone-based technical support services.
 - **QuickBooks Integration**: Sync customer data and invoices
 - **OpenPhone Integration**: Automatic call tracking and SMS
 
-## 🛠 Tech Stack
+## 🧰 Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS
 - **Backend**: Vercel Serverless Functions
@@ -36,7 +36,7 @@ A specialized CRM and billing system for phone-based technical support services.
 - **/admin/billing**: Subscription and billing management
 - **/admin/documents**: Process documentation system
 
-## 🔧 Development
+## 🧑‍💻 Development
 
 ```bash
 # Install dependencies
@@ -56,9 +56,13 @@ vercel --prod
 
 - **SETUP_GUIDE.md**: Step-by-step production setup
 - **PRODUCTION_CHECKLIST.md**: Pre-launch checklist
-- **.env.production.example**: Required environment variables
+- **.env.example**: Required environment variables (copy to .env.local)
 
 ## 🔗 Webhook URLs
 
 - OpenPhone: `https://schlatters-inc.vercel.app/api/webhooks/openphone`
 - QuickBooks: `https://schlatters-inc.vercel.app/api/webhooks/quickbooks`
+
+---
+
+**Note:** All mock data should be removed from the codebase. Ensure all integrations (Supabase, OpenPhone, QuickBooks, Google) are fully wired up before production.

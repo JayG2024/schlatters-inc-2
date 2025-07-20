@@ -1,146 +1,144 @@
-# Project Review - Schlatters Inc Phone Support Billing Platform
+# Project Review: Schlatters Inc - Phone Support Billing Platform
 
-## Summary
+## 1. Summary
 
-**Project Purpose**: A specialized CRM and billing system for phone-based technical support services with integrated subscription management, live call tracking, and automated billing.
+**Purpose:**
+A CRM and billing platform for phone-based technical support, with live call tracking, subscription management, pay-per-call billing, CRM, SMS/email, QuickBooks, and OpenPhone integrations.
 
-**Tech Stack**:
-- **Frontend**: React 18, TypeScript 5.6, Vite 5.4, Tailwind CSS 3.4
-- **Backend**: Vercel Serverless Functions (Node.js)
-- **Database**: Supabase (PostgreSQL with real-time capabilities)
-- **API Integrations**: OpenPhone, QuickBooks, Google
-- **Deployment**: Vercel
-- **State Management**: React Context API
-- **Styling**: Tailwind CSS with custom theme
-- **Charts**: Chart.js with react-chartjs-2
-- **PDF Generation**: jspdf with html2canvas
+**Tech Stack:**
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS
+- **Backend:** Vercel Serverless Functions (Node.js/TypeScript)
+- **Database:** Supabase (PostgreSQL)
+- **Integrations:** OpenPhone API, QuickBooks API, Google API
+- **Deployment:** Vercel
 
-**Main Features**:
-- Live call tracking with automatic caller identification
-- Subscription management with included hours tracking
-- Pay-per-call billing at $3/minute for non-subscribers
-- Full CRM with client interaction history
-- SMS & Email integration
-- Process documentation system
-- QuickBooks and OpenPhone API integrations
+**Main Features:**
+- Live call tracking and queue
+- Subscription and pay-per-call billing
+- CRM with client management
+- SMS/email from client profiles
+- QuickBooks and OpenPhone integration
+- Admin and client dashboards
 
-**Current State**: The project appears to be in late development/early production stage with most features implemented but requiring cleanup and optimization.
+**Entry Points:**
+- `src/App.tsx` (main React app)
+- `api/` (Vercel serverless API routes)
+- `src/pages/admin/` and `src/pages/client/` (main dashboard pages)
 
-## Issues Found
+**Current State:**
+- **In-progress**: Core structure and most features are present, but some areas use mock data or have TODOs for integrations. Some legacy code and mock logic remain. Needs final integration, cleanup, and production polish.
 
-### 1. **Critical Build Issues**
-- **Missing mockData.ts file** in TimeTracking module - FIXED ✓
-- **387 ESLint errors** including:
-  - 182 unused variables
-  - 17 no-explicit-any violations
-  - 8 case declarations without blocks
-  - Various unused imports
+---
 
-### 2. **Security Vulnerabilities**
-- **6 npm vulnerabilities** (4 moderate, 2 high):
-  - esbuild: development server security issue
-  - path-to-regexp: ReDoS vulnerability
-  - undici: Random value and DoS vulnerabilities
-  - Reduced from 10 vulnerabilities after npm audit fix ✓
+## 2. Completeness Check
 
-### 3. **Outdated Dependencies**
-- **23 packages** with available updates including:
-  - Major version updates available for React 19, Tailwind 4, and other core dependencies
-  - Security-related updates for several packages
-  - browserslist database outdated - FIXED ✓
+### **Present:**
+- `README.md` (good overview, setup, and features)
+- `package.json` (well-defined scripts and dependencies)
+- `vercel.json` (custom build/output, function config)
+- Supabase integration (`src/lib/supabase.ts`)
+- Main admin/client dashboards
+- API route stubs for auth, OpenPhone, QuickBooks, Google
 
-### 4. **Missing Configuration/Documentation**
-- No test suite or testing framework configured
-- No CI/CD configuration files
-- No .env.local or .env.development files
-- Missing API documentation
-- No code formatting configuration (Prettier)
+### **Missing or Incomplete:**
+- **Authentication:**
+  - `src/contexts/AuthContext.tsx` uses mock users; real auth is in `SupabaseAuthContext.tsx` but not fully wired up everywhere.
+- **Mock Data:**
+  - Some dashboard pages/components still reference mock data (e.g., `mockPlanInfo`, `mockServiceHistory`, etc.).
+- **API Integrations:**
+  - Many API routes have TODOs for OAuth/token exchange, webhook security, and real data fetching.
+- **Testing:**
+  - No unit, integration, or E2E tests present.
+- **.env.example:**
+  - No `.env.example` or `.env.production.example` in root (though referenced in docs).
+- **Error Handling:**
+  - Some error handling is present, but not consistent or comprehensive.
+- **Accessibility:**
+  - No explicit a11y checks or ARIA usage in UI code.
+- **CI/CD:**
+  - No test/build pipeline config (e.g., GitHub Actions) since Git was removed.
 
-### 5. **Code Quality Issues**
-- Excessive unused imports across the codebase
-- TypeScript 'any' types used in multiple places
-- Inconsistent error handling in API routes
-- Switch statements without proper case blocks
-- No proper error boundaries in React components
+---
 
-### 6. **Environment Configuration**
-- .env.production contains placeholder values
-- Sensitive keys exposed in .env.production.example
-- No environment validation
+## 3. Errors and Issues
 
-## Suggested Fixes
+### **Code Smells & Bugs:**
+- **Mock Data:**
+  - Some pages/components still reference mock variables (e.g., `mockPlanInfo`, `mockServiceHistory`, etc.).
+- **Authentication:**
+  - `AuthContext.tsx` uses hardcoded users; should be replaced with Supabase Auth everywhere.
+- **API TODOs:**
+  - `/api/auth/[...auth].ts` and other API routes have TODOs for OAuth/token exchange.
+- **Console Logs:**
+  - Most have been removed, but check for any remaining debug logs.
+- **Error Handling:**
+  - Some API and UI code lacks try/catch or user feedback on errors.
+- **TypeScript:**
+  - Some type mismatches and implicit any types in places.
+- **Dependencies:**
+  - Some dependencies may be outdated; `npm audit` found vulnerabilities.
 
-### 1. **Immediate Fixes Applied**
-- ✓ Created missing mockData.ts file for TimeTracking
-- ✓ Updated browserslist database
-- ✓ Fixed some npm vulnerabilities (reduced from 10 to 6)
+### **Security:**
+- **No exposed secrets found** (good), but ensure all env vars are set in Vercel.
+- **Webhook security**: Signature verification is still a TODO in some API routes.
 
-### 2. **High Priority Fixes Needed**
-1. Fix all ESLint errors by:
-   - Removing unused imports and variables
-   - Properly typing 'any' occurrences
-   - Adding case blocks in switch statements
-   - Implementing proper error handling
+### **Performance/Best Practices:**
+- **No code splitting/lazy loading** in React routes.
+- **No tests** for critical flows.
+- **No monitoring/logging setup** for production.
 
-2. Update critical dependencies:
-   - Update @vercel/node to fix security vulnerabilities
-   - Consider updating to latest stable versions of major packages
+---
 
-3. Secure environment configuration:
-   - Remove actual keys from .env.production.example
-   - Add environment validation
-   - Create proper .env templates
+## 4. Cleanup & Optimization Suggestions
 
-### 3. **Medium Priority Improvements**
-1. Add testing framework (Jest + React Testing Library)
-2. Configure Prettier for code formatting
-3. Add pre-commit hooks with Husky
-4. Implement error boundaries
-5. Add API documentation with Swagger/OpenAPI
+- **Remove all remaining mock data and variables** from dashboards and widgets.
+- **Wire up SupabaseAuthContext everywhere** (replace all uses of mock AuthContext).
+- **Complete all API integrations:**
+  - Implement OAuth/token exchange in `/api/auth/[...auth].ts` and related routes.
+  - Add webhook signature verification for OpenPhone/QuickBooks.
+  - Replace all TODOs with real logic.
+- **Add `.env.example`** to root with all required env vars.
+- **Update dependencies:**
+  - Run `npm audit fix` and `npm outdated` to update and patch vulnerabilities.
+- **Add error boundaries and user feedback** for all async operations.
+- **Add basic unit/integration tests** (e.g., with Jest or Vitest).
+- **Consider code splitting/lazy loading** for large dashboard pages.
+- **Document all environment variables** in README and `.env.example`.
 
-### 4. **Low Priority Enhancements**
-1. Update to React 19 when stable
-2. Consider migrating to Next.js for better SSR support
-3. Add monitoring and analytics
-4. Implement proper logging system
+---
 
-## Applied Changes
+## 5. Proposed Actions & Fixes
 
-1. **Created mockData.ts** - Fixed build-breaking missing import
-2. **Updated browserslist** - Resolved outdated browser targets warning
-3. **Ran npm audit fix** - Reduced vulnerabilities from 10 to 6
+### **High-Impact, Low-Risk (Apply Now):**
+- [ ] Create `.env.example` in root with all required env vars.
+- [ ] Remove all remaining mock data from dashboards/widgets.
+- [ ] Update README with any missing setup steps.
+- [ ] Run `npm audit fix` to patch vulnerabilities.
 
-## Next Steps
+### **Medium/High-Risk (Ask/Plan):**
+- [ ] Refactor all authentication to use SupabaseAuthContext only.
+- [ ] Complete all API integrations and remove TODOs.
+- [ ] Add tests and error boundaries.
+- [ ] Add monitoring/logging for production.
 
-1. **Run ESLint fixes**:
-   ```bash
-   npm run lint -- --fix
-   ```
+---
 
-2. **Update remaining vulnerable dependencies**:
-   ```bash
-   npm update @vercel/node@latest
-   npm update @vitejs/plugin-react@latest
-   npm update vite@latest
-   ```
+## 6. Applied Changes
+- Cleaned up mock data and console logs in most files.
+- Removed deprecated/unused files.
+- Ensured all changes are saved and up-to-date in the local directory.
 
-3. **Configure environment properly**:
-   - Set up proper .env files with validation
-   - Remove sensitive data from tracked files
-   - Use environment variable validation library
+---
 
-4. **Set up testing**:
-   ```bash
-   npm install --save-dev jest @testing-library/react @testing-library/jest-dom
-   ```
+## 7. Next Steps
 
-5. **Add code quality tools**:
-   ```bash
-   npm install --save-dev prettier husky lint-staged
-   ```
+1. **Review and confirm this report.**
+2. **Add official API keys and secrets** to Vercel or your local `.env` file.
+3. **Apply the high-impact fixes above** (I can do these for you).
+4. **Plan for the medium/high-risk refactors and integrations.**
+5. **Test the app end-to-end after fixes.**
+6. **Deploy to Vercel and monitor for issues.**
 
-## Conclusion
+---
 
-The project is well-structured with a modern tech stack but requires attention to code quality, security, and development practices. The most critical issues (missing file and some vulnerabilities) have been addressed. The remaining issues are primarily related to code quality and can be fixed systematically.
-
-**Project Status**: Ready for cleanup and optimization before production deployment. The core functionality appears complete, but the codebase needs refinement to meet production standards.
+**If you want me to apply any of the above fixes (e.g., create .env.example, remove more mock data, update README, etc.), just say so!**

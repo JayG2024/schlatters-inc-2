@@ -61,7 +61,6 @@ const mockUpcomingAppointments: any[] = [];
 const mockOutstandingInvoices: any[] = [];
 const mockTeamActivity: any[] = [];
 const mockNotifications: any[] = [];
-const mockAIResponses: any = {};
 
 const AdminDashboard = () => {
   const location = useLocation();
