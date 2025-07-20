@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/SupabaseAuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { cn } from '../lib/utils';
 import { LogIn, AlertCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,6 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const { signIn, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
