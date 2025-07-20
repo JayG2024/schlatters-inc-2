@@ -332,11 +332,13 @@ const ClientDashboard = () => {
                           onAddAppointment={() => {}}
                           className="col-span-1"
                         />
-                      </div>
+                        </div>
+                      </DashboardErrorBoundary>
                       
                       {/* Secondary Widgets */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <SupportWidget 
+                      <DashboardErrorBoundary section="Secondary Widgets">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <SupportWidget 
                           tickets={tickets}
                           onViewAll={() => {}}
                           onCreateTicket={() => {}}
@@ -360,10 +362,12 @@ const ClientDashboard = () => {
                           planInfo={planInfo} 
                           onUpgrade={() => {}} 
                         />
-                      </div>
+                        </div>
+                      </DashboardErrorBoundary>
 
                       {/* Financial Status and Document Management */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <DashboardErrorBoundary section="Financial Status and Document Management">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <InvoiceWidget 
                           invoices={invoices}
                           onViewAll={() => {}}
@@ -381,7 +385,8 @@ const ClientDashboard = () => {
                           onViewDocument={() => {}}
                           className="col-span-1"
                         />
-                      </div>
+                        </div>
+                      </DashboardErrorBoundary>
                     </>
                   )}
 
