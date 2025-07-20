@@ -23,10 +23,27 @@ const Login = () => {
       const { error } = await signIn(email, password);
       if (error) {
         setError(error.message || 'Invalid email or password');
+        showToast({
+          type: 'error',
+          title: 'Login Failed',
+          message: error.message || 'Invalid email or password'
+        });
+      } else {
+        showToast({
+          type: 'success',
+          title: 'Login Successful',
+          message: 'Welcome back!'
+        });
       }
       // Navigation is handled by SupabaseAuthProvider
     } catch (err) {
-      setError('Invalid email or password');
+      const errorMessage = 'Invalid email or password';
+      setError(errorMessage);
+      showToast({
+        type: 'error',
+        title: 'Login Failed',
+        message: errorMessage
+      });
     }
   };
 
