@@ -15,8 +15,8 @@ function App() {
         "selection:bg-brand-gold/10 selection:text-brand-gold-dark dark:selection:bg-brand-gold/20 dark:selection:text-brand-gold",
         "transition-colors duration-200"
       )}>
-        <AuthProvider>
-          <BrowserRouter>
+        <BrowserRouter>
+          <SupabaseAuthProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
@@ -24,8 +24,8 @@ function App() {
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-          </BrowserRouter>
-        </AuthProvider>
+          </SupabaseAuthProvider>
+        </BrowserRouter>
       </div>
     </ThemeProvider>
   );
