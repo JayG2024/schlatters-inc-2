@@ -141,9 +141,14 @@ async function handlePhoneNumbers(req: VercelRequest, res: VercelResponse, apiKe
   
   if (req.method === 'GET') {
     // Fetch phone numbers
-    const response = await fetch('https://api.openphone.com/v1/phone-numbers', { headers });
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    try {
+      const response = await fetch('https://api.openphone.com/v1/phone-numbers', { headers });
+      const data = await response.json();
+      return res.status(200).json(data);
+    } catch (error) {
+      console.error('Error fetching phone numbers from OpenPhone API:', error);
+      return res.status(502).json({ error: 'Failed to fetch phone numbers from OpenPhone API', details: error instanceof Error ? error.message : String(error) });
+    }
   }
   
   return res.status(405).json({ error: 'Method not allowed' });

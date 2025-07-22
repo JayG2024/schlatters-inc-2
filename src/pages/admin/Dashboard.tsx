@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/dashboard/Sidebar';
 import Header from '../../components/dashboard/Header';
@@ -125,8 +125,8 @@ const AdminDashboard = () => {
         type: "generic",
         title: "AI Response",
         data: {
-          message: "AI query processing will be implemented with actual API integration.",
-          suggestion: "This feature will be connected to your AI backend soon."
+          message: `We received your question: "${aiQuery}". AI query processing will be implemented with actual API integration soon.`,
+          suggestion: `Your input ('${aiQuery}') was received. This feature will be connected to your AI backend soon.`
         }
       });
       setIsProcessingQuery(false);
@@ -405,7 +405,13 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       <KPICard
                       title="Active Customers"
-                      value={new Set([...calls.map(c => c.client_id), ...messages.map(m => m.client_id)]).size.toString()}
+                      value={useMemo(() => {
+                        const safeCalls = Array.isArray(calls) ? calls : [];
+                        const safeMessages = Array.isArray(messages) ? messages : [];
+                        const callClientIds = safeCalls.map(c => c?.client_id).filter(id => id != null);
+                        const messageClientIds = safeMessages.map(m => m?.client_id).filter(id => id != null);
+                        return new Set([...callClientIds, ...messageClientIds]).size.toString();
+                      }, [calls, messages])}
                       icon={<Users size={24} />}
                       trend={{
                         value: 0,

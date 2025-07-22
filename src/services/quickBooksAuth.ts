@@ -89,7 +89,7 @@ export class QuickBooksAuth {
   }
 
   // Refresh access token
-  async refreshAccessToken(refreshToken: string): Promise<QuickBooksTokens> {
+  async refreshAccessToken(refreshToken: string, realmId: string): Promise<QuickBooksTokens> {
     const tokenUrl = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
     const basicAuth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
     
@@ -111,7 +111,9 @@ export class QuickBooksAuth {
       throw new Error(`Failed to refresh token: ${error}`);
     }
 
-    return await response.json() as QuickBooksTokens;
+    const tokens = await response.json() as QuickBooksTokens;
+    await this.storeTokens(tokens, realmId);
+    return tokens;
   }
 
   // Store tokens in database
@@ -238,10 +240,32 @@ export class QuickBooksAuth {
   }
 }
 
+// Validate required environment variables
+const requiredEnvVars = {
+  QUICKBOOKS_CLIENT_ID: process.env.QUICKBOOKS_CLIENT_ID,
+  QUICKBOOKS_CLIENT_SECRET: process.env.QUICKBOOKS_CLIENT_SECRET,
+};
+
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+}
+
+const environment = process.env.QUICKBOOKS_ENVIRONMENT;
+if (environment && !['sandbox', 'production'].includes(environment)) {
+  throw new Error(
+    `Invalid QUICKBOOKS_ENVIRONMENT: ${environment}. Must be 'sandbox' or 'production'`
+  );
+}
+
 // Export singleton instance
 export const quickBooksAuth = new QuickBooksAuth(
-  process.env.QUICKBOOKS_CLIENT_ID || '',
-  process.env.QUICKBOOKS_CLIENT_SECRET || '',
-  process.env.QUICKBOOKS_REDIRECT_URI || `${process.env.VERCEL_URL || 'http://localhost:3000'}/api/auth/quickbooks/callback`,
-  process.env.QUICKBOOKS_ENVIRONMENT as 'sandbox' | 'production' || 'sandbox'
+  requiredEnvVars.QUICKBOOKS_CLIENT_ID!,
+  requiredEnvVars.QUICKBOOKS_CLIENT_SECRET!,
+  process.env.QUICKBOOKS_REDIRECT_URI ||
+    `${process.env.VERCEL_URL || 'http://localhost:3000'}/api/auth/quickbooks/callback`,
+  (environment as 'sandbox' | 'production') || 'sandbox'
 );

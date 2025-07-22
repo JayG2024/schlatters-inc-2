@@ -156,7 +156,6 @@ export function useOpenPhoneData() {
   };
 }
 
-// Hook to get call statistics
 export function useCallStatistics() {
   const [stats, setStats] = useState({
     totalCalls: 0,
@@ -167,10 +166,12 @@ export function useCallStatistics() {
     missedCalls: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setError(null);
         const { data: calls, error } = await supabase
           .from('calls')
           .select('duration, direction, status');
@@ -195,6 +196,7 @@ export function useCallStatistics() {
           });
         }
       } catch (error) {
+        setError(error.message);
         console.error('Error fetching call statistics:', error);
       } finally {
         setLoading(false);
@@ -204,5 +206,5 @@ export function useCallStatistics() {
     fetchStats();
   }, []);
 
-  return { stats, loading };
+  return { stats, loading, error };
 }

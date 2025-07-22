@@ -54,33 +54,67 @@ const ClientDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   // Initialize empty state for data to be fetched from Supabase
-  const [planInfo, setPlanInfo] = useState<any>({
-    tier: 'Loading...',
-    renewalDate: 'Loading...',
-    textUsage: { used: 0, total: 0 },
-    callUsage: { used: 0, total: 0 },
-    consultingUsage: { used: 0, total: 0 }
-  });
-  const [communications, setCommunications] = useState<any[]>([]);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [estimates, setEstimates] = useState<any[]>([]);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [clientTimeEntries, setClientTimeEntries] = useState<any[]>([]);
-  const [serviceHistory, setServiceHistory] = useState<any[]>([]);
+// Define proper interfaces
+interface PlanInfo {
+  tier: string;
+  renewalDate: string;
+  textUsage: { used: number; total: number };
+  callUsage: { used: number; total: number };
+  consultingUsage: { used: number; total: number };
+}
+
+interface Communication {
+  id: string;
+  // Add other required fields
+}
+
+// State declarations
+const [planInfo, setPlanInfo] = useState<PlanInfo>({
+  tier: 'Loading...',
+  renewalDate: 'Loading...',
+  textUsage: { used: 0, total: 0 },
+  callUsage: { used: 0, total: 0 },
+  consultingUsage: { used: 0, total: 0 }
+});
+const [communications, setCommunications] = useState<Communication[]>([]);
+const [appointments, setAppointments] = useState<any[]>([]);
+const [tickets, setTickets] = useState<any[]>([]);
+const [estimates, setEstimates] = useState<any[]>([]);
+const [invoices, setInvoices] = useState<any[]>([]);
+const [documents, setDocuments] = useState<any[]>([]);
+const [clientTimeEntries, setClientTimeEntries] = useState<any[]>([]);
+const [serviceHistory, setServiceHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    // TODO: Fetch actual data from Supabase
-    // For now, simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      // TODO: Add actual data fetching logic here
-      // setPlanInfo(fetchedPlanInfo);
-      // setCommunications(fetchedCommunications);
-      // setAppointments(fetchedAppointments);
-      // etc.
-    }, 1000);
+    // add error state
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          setError(null);
+
+          // TODO: Replace with actual Supabase calls
+          // const [planData, commData, appointData] = await Promise.all([
+          //   fetchPlanInfo(),
+          //   fetchCommunications(),
+          //   fetchAppointments()
+          // ]);
+
+          // setPlanInfo(planData);
+          // setCommunications(commData);
+          // setAppointments(appointData);
+
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchData();
+    }, [location.pathname]);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
@@ -502,17 +536,24 @@ const ClientDashboard = () => {
                               </div>
                               <Progress 
                                 value={planInfo?.consultingUsage && planInfo.consultingUsage.total ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100 : 0} 
-                                variant={planInfo?.consultingUsage && planInfo.consultingUsage.total && (planInfo.consultingUsage.used / planInfo.consultingUsage.total > 0.8) ? 'warning' : 'default'}
+                                {planInfo?.consultingUsage?.used || 0} / {planInfo?.consultingUsage?.total || 0}
+                              </div>
+                              <Progress 
+                                value={planInfo?.consultingUsage?.total
+                                  ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100
+                                  : 0
+                                } 
+                                variant={(
+                                  planInfo?.consultingUsage?.total &&
+                                  (planInfo.consultingUsage.used / planInfo.consultingUsage.total) > 0.8
+                                ) ? 'warning' : 'default'}
                               />
                               <p className="text-sm text-navy-600 dark:text-blue-300 mt-3">
-                                {planInfo?.consultingUsage && planInfo.consultingUsage.used === planInfo.consultingUsage.total ? (
+                                {planInfo?.consultingUsage?.used === planInfo?.consultingUsage?.total ? (
                                   "You've used all your allocated consulting hours"
                                 ) : (
-                                  `${planInfo?.consultingUsage?.total && planInfo?.consultingUsage?.used !== undefined ? planInfo.consultingUsage.total - planInfo.consultingUsage.used : 'N/A'} hours remaining this cycle`
+                                  `${(planInfo?.consultingUsage?.total || 0) - (planInfo?.consultingUsage?.used || 0)} hours remaining this cycle`
                                 )}
-                              </p>
-                            </div>
-                            
                             <div className="bg-gray-50 dark:bg-gray-800/80 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
                               <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-3">Recent Consulting Activity</h3>
                               <div className="space-y-3">
