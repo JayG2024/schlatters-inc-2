@@ -29,6 +29,7 @@ interface DocumentsWidgetProps {
   onDownloadDocument?: (documentId: string) => void;
   onViewDocument?: (documentId: string) => void;
   className?: string;
+  loading?: boolean;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -74,6 +75,7 @@ export const DocumentsWidget: React.FC<DocumentsWidgetProps> = ({
   onDownloadDocument,
   onViewDocument,
   className,
+  loading = false,
 }) => {
   // Sort documents by date (newest first)
   const sortedDocuments = [...documents].sort((a, b) => 
@@ -99,65 +101,73 @@ export const DocumentsWidget: React.FC<DocumentsWidgetProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {sortedDocuments.slice(0, 5).map((document) => (
-          <div 
-            key={document.id} 
-            className="p-3 bg-white border border-gray-200 rounded-md hover:border-gray-300 transition-colors"
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-50 rounded-md border border-gray-100">
-                  {getDocumentIcon(document.type)}
-                </div>
-                
-                <div>
-                  <div className="font-medium text-gray-900 flex items-center gap-1">
-                    {document.name}
-                    {document.restricted && (
-                      <Lock size={14} className="text-amber-500" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                    <span>{formatFileSize(document.fileSize)}</span>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <Clock size={12} />
-                      <span>{formatDateTime(document.createdAt)}</span>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></span>
+          </div>
+        ) : (
+          <>
+            {sortedDocuments.slice(0, 5).map((document) => (
+              <div 
+                key={document.id} 
+                className="p-3 bg-white border border-gray-200 rounded-md hover:border-gray-300 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-50 rounded-md border border-gray-100">
+                      {getDocumentIcon(document.type)}
+                    </div>
+                    
+                    <div>
+                      <div className="font-medium text-gray-900 flex items-center gap-1">
+                        {document.name}
+                        {document.restricted && (
+                          <Lock size={14} className="text-amber-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <span>{formatFileSize(document.fileSize)}</span>
+                        <span>•</span>
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} />
+                          <span>{formatDateTime(document.createdAt)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  
+                  {getCategoryBadge(document.category)}
+                </div>
+                
+                <div className="mt-3 flex justify-end items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    leftIcon={<ExternalLink size={14} />}
+                    onClick={() => onViewDocument?.(document.id)}
+                    title="View Document"
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    leftIcon={<Download size={14} />}
+                    onClick={() => onDownloadDocument?.(document.id)}
+                  >
+                    Download
+                  </Button>
                 </div>
               </div>
-              
-              {getCategoryBadge(document.category)}
-            </div>
+            ))}
             
-            <div className="mt-3 flex justify-end items-center gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                leftIcon={<ExternalLink size={14} />}
-                onClick={() => onViewDocument?.(document.id)}
-                title="View Document"
-              >
-                View
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={<Download size={14} />}
-                onClick={() => onDownloadDocument?.(document.id)}
-              >
-                Download
-              </Button>
-            </div>
-          </div>
-        ))}
-        
-        {documents.length === 0 && (
-          <div className="text-center py-6 text-gray-500">
-            <FileText size={24} className="mx-auto mb-2 text-gray-400" />
-            <p>No documents found</p>
-          </div>
+            {documents.length === 0 && (
+              <div className="text-center py-6 text-gray-500">
+                <FileText size={24} className="mx-auto mb-2 text-gray-400" />
+                <p>No documents</p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 
