@@ -34,6 +34,7 @@ interface InvoiceWidgetProps {
   onDownloadInvoice?: (invoiceId: string) => void;
   className?: string;
   userType: 'admin' | 'client';
+  loading?: boolean;
 }
 
 const getStatusBadge = (status: Invoice['status']) => {
@@ -54,6 +55,7 @@ export const InvoiceWidget: React.FC<InvoiceWidgetProps> = ({
   onDownloadInvoice,
   className,
   userType,
+  loading = false,
 }) => {
   // Sort invoices by due date (oldest first for pending/overdue)
   const sortedInvoices = [...invoices].sort((a, b) => {
@@ -82,101 +84,109 @@ export const InvoiceWidget: React.FC<InvoiceWidgetProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {sortedInvoices.slice(0, 4).map((invoice) => (
-          <div 
-            key={invoice.id} 
-            className="p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-2">
-                  <FileText size={16} className="text-gray-400 dark:text-gray-500" />
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                    Invoice #{invoice.number}
-                  </span>
-                </div>
-                
-                {userType === 'admin' && (
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">
-                    {invoice.clientName}
-                  </div>
-                )}
-              </div>
-              {getStatusBadge(invoice.status)}
-            </div>
-            
-            <div className="mt-2 flex justify-between items-center">
-              <div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCurrency(invoice.amount)}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {invoice.status === 'paid' 
-                    ? `Paid on ${formatDate(new Date(invoice.date))}`
-                    : `Due ${formatDate(new Date(invoice.dueDate))}`
-                  }
-                </div>
-                
-                {/* Communication Intelligence */}
-                {invoice.status !== 'paid' && invoice.lastContactDate && (
-                  <div className="flex items-center gap-2 mt-2">
-                    {invoice.lastContactType === 'call' && <Phone size={12} className="text-gray-400" />}
-                    {invoice.lastContactType === 'sms' && <MessageSquare size={12} className="text-gray-400" />}
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Last contact: {formatDate(new Date(invoice.lastContactDate))}
-                    </span>
-                    {invoice.communicationCount && invoice.communicationCount > 3 && (
-                      <Badge variant="warning" className="text-xs">
-                        {invoice.communicationCount} attempts
-                      </Badge>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></span>
+          </div>
+        ) : (
+          <>
+            {sortedInvoices.slice(0, 4).map((invoice) => (
+              <div 
+                key={invoice.id} 
+                className="p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <FileText size={16} className="text-gray-400 dark:text-gray-500" />
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        Invoice #{invoice.number}
+                      </span>
+                    </div>
+                    
+                    {userType === 'admin' && (
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6">
+                        {invoice.clientName}
+                      </div>
                     )}
                   </div>
-                )}
+                  {getStatusBadge(invoice.status)}
+                </div>
                 
-                {/* Payment Likelihood Indicator */}
-                {invoice.status === 'overdue' && invoice.paymentLikelihood && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <AlertCircle size={12} className={
-                      invoice.paymentLikelihood === 'high' ? 'text-green-500' :
-                      invoice.paymentLikelihood === 'medium' ? 'text-yellow-500' : 'text-red-500'
-                    } />
-                    <span className="text-xs text-gray-500">
-                      Payment likelihood: {invoice.paymentLikelihood}
-                    </span>
+                <div className="mt-2 flex justify-between items-center">
+                  <div>
+                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {formatCurrency(invoice.amount)}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {invoice.status === 'paid' 
+                        ? `Paid on ${formatDate(new Date(invoice.date))}`
+                        : `Due ${formatDate(new Date(invoice.dueDate))}`
+                      }
+                    </div>
+                    
+                    {/* Communication Intelligence */}
+                    {invoice.status !== 'paid' && invoice.lastContactDate && (
+                      <div className="flex items-center gap-2 mt-2">
+                        {invoice.lastContactType === 'call' && <Phone size={12} className="text-gray-400" />}
+                        {invoice.lastContactType === 'sms' && <MessageSquare size={12} className="text-gray-400" />}
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Last contact: {formatDate(new Date(invoice.lastContactDate))}
+                        </span>
+                        {invoice.communicationCount && invoice.communicationCount > 3 && (
+                          <Badge variant="warning" className="text-xs">
+                            {invoice.communicationCount} attempts
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Payment Likelihood Indicator */}
+                    {invoice.status === 'overdue' && invoice.paymentLikelihood && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <AlertCircle size={12} className={
+                          invoice.paymentLikelihood === 'high' ? 'text-green-500' :
+                          invoice.paymentLikelihood === 'medium' ? 'text-yellow-500' : 'text-red-500'
+                        } />
+                        <span className="text-xs text-gray-500">
+                          Payment likelihood: {invoice.paymentLikelihood}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      leftIcon={<Download size={14} />}
+                      onClick={() => onDownloadInvoice?.(invoice.id)}
+                      title="Download Invoice"
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    />
+                    
+                    {(invoice.status === 'pending' || invoice.status === 'overdue') && 
+                      userType === 'client' && (
+                      <Button
+                        size="sm"
+                        leftIcon={<CreditCard size={14} />}
+                        onClick={() => onPayInvoice?.(invoice.id)}
+                      >
+                        Pay Now
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  leftIcon={<Download size={14} />}
-                  onClick={() => onDownloadInvoice?.(invoice.id)}
-                  title="Download Invoice"
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                />
-                
-                {(invoice.status === 'pending' || invoice.status === 'overdue') && 
-                  userType === 'client' && (
-                  <Button
-                    size="sm"
-                    leftIcon={<CreditCard size={14} />}
-                    onClick={() => onPayInvoice?.(invoice.id)}
-                  >
-                    Pay Now
-                  </Button>
-                )}
+            ))}
+            
+            {invoices.length === 0 && (
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                <FileText size={24} className="mx-auto mb-2 text-gray-400 dark:text-gray-600" />
+                <p>No invoices found</p>
               </div>
-            </div>
-          </div>
-        ))}
-        
-        {invoices.length === 0 && (
-          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-            <FileText size={24} className="mx-auto mb-2 text-gray-400 dark:text-gray-600" />
-            <p>No invoices found</p>
-          </div>
+            )}
+          </>
         )}
       </CardContent>
 

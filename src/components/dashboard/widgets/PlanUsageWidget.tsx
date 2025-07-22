@@ -35,6 +35,7 @@ interface PlanUsageWidgetProps {
   planInfo: PlanInfo;
   onUpgrade?: () => void;
   className?: string;
+  loading?: boolean;
 }
 
 const getTierColor = (tier: 'Lite' | 'Mid' | 'Pro') => {
@@ -58,6 +59,7 @@ export const PlanUsageWidget: React.FC<PlanUsageWidgetProps> = ({
   planInfo,
   onUpgrade,
   className,
+  loading = false,
 }) => {
   const textPercentage = (planInfo.textUsage.used / planInfo.textUsage.total) * 100;
   const callPercentage = (planInfo.callUsage.used / planInfo.callUsage.total) * 100;
@@ -89,53 +91,61 @@ export const PlanUsageWidget: React.FC<PlanUsageWidgetProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">Text Messages</span>
-            <span className="text-gray-500">
-              {planInfo.textUsage.used} / {planInfo.textUsage.total}
-            </span>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></span>
           </div>
-          <Progress 
-            value={textPercentage} 
-            variant={getUsageVariant(textPercentage)}
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">Phone Calls</span>
-            <span className="text-gray-500">
-              {planInfo.callUsage.used} / {planInfo.callUsage.total}
-            </span>
-          </div>
-          <Progress 
-            value={callPercentage} 
-            variant={getUsageVariant(callPercentage)}
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <span className="font-medium">Consulting Hours</span>
-            <span className="text-gray-500">
-              {planInfo.consultingUsage.used} / {planInfo.consultingUsage.total}
-            </span>
-          </div>
-          <Progress 
-            value={consultingPercentage} 
-            variant={getUsageVariant(consultingPercentage)}
-          />
-        </div>
-
-        {isNearLimit && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-md flex items-start gap-2">
-            <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-800">
-              <p className="font-medium">You're nearing your plan limits</p>
-              <p className="mt-1">Consider upgrading your plan to avoid overages.</p>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Text Messages</span>
+                <span className="text-gray-500">
+                  {planInfo.textUsage.used} / {planInfo.textUsage.total}
+                </span>
+              </div>
+              <Progress 
+                value={textPercentage} 
+                variant={getUsageVariant(textPercentage)}
+              />
             </div>
-          </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Phone Calls</span>
+                <span className="text-gray-500">
+                  {planInfo.callUsage.used} / {planInfo.callUsage.total}
+                </span>
+              </div>
+              <Progress 
+                value={callPercentage} 
+                variant={getUsageVariant(callPercentage)}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">Consulting Hours</span>
+                <span className="text-gray-500">
+                  {planInfo.consultingUsage.used} / {planInfo.consultingUsage.total}
+                </span>
+              </div>
+              <Progress 
+                value={consultingPercentage} 
+                variant={getUsageVariant(consultingPercentage)}
+              />
+            </div>
+
+            {isNearLimit && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-md flex items-start gap-2">
+                <Clock size={18} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium">You're nearing your plan limits</p>
+                  <p className="mt-1">Consider upgrading your plan to avoid overages.</p>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 
