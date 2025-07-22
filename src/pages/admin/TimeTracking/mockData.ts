@@ -30,3 +30,16 @@ export const formatDuration = (seconds: number): string => {
     return `${secs}s`;
   }
 };
+
+export const filterTimeEntries = (entries: TimeEntry[], searchTerm: string): TimeEntry[] => {
+  if (!searchTerm) return entries;
+  
+  const lowercaseSearch = searchTerm.toLowerCase();
+  
+  return entries.filter(entry => 
+    entry.description.toLowerCase().includes(lowercaseSearch) ||
+    entry.clientName.toLowerCase().includes(lowercaseSearch) ||
+    entry.taskType.toLowerCase().includes(lowercaseSearch) ||
+    entry.status.toLowerCase().includes(lowercaseSearch)
+  );
+};
