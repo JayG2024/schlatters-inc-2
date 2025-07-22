@@ -42,6 +42,8 @@ import Badge from '../../components/ui/Badge';
 import Progress from '../../components/ui/Progress';
 import ThemeToggle from '../../components/ui/ThemeToggle';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import type { PlanInfo as WidgetPlanInfo } from '../../components/dashboard/widgets/PlanUsageWidget';
+import type { Communication as WidgetCommunication } from '../../components/dashboard/widgets/CommunicationWidget';
 
 // Mock data removed - data will be fetched from Supabase
 
@@ -55,28 +57,18 @@ const ClientDashboard = () => {
   
   // Initialize empty state for data to be fetched from Supabase
 // Define proper interfaces
-interface PlanInfo {
-  tier: string;
-  renewalDate: string;
-  textUsage: { used: number; total: number };
-  callUsage: { used: number; total: number };
-  consultingUsage: { used: number; total: number };
-}
-
-interface Communication {
-  id: string;
-  // Add other required fields
-}
+// Remove local PlanInfo and Communication interfaces
 
 // State declarations
-const [planInfo, setPlanInfo] = useState<PlanInfo>({
-  tier: 'Loading...',
+const [planInfo, setPlanInfo] = useState<WidgetPlanInfo>({
+  name: 'Default',
+  tier: 'Lite',
   renewalDate: 'Loading...',
   textUsage: { used: 0, total: 0 },
   callUsage: { used: 0, total: 0 },
   consultingUsage: { used: 0, total: 0 }
 });
-const [communications, setCommunications] = useState<Communication[]>([]);
+const [communications, setCommunications] = useState<WidgetCommunication[]>([]);
 const [appointments, setAppointments] = useState<any[]>([]);
 const [tickets, setTickets] = useState<any[]>([]);
 const [estimates, setEstimates] = useState<any[]>([]);
@@ -116,7 +108,6 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
       fetchData();
     }, [location.pathname]);
 
-    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   // Loading component
@@ -358,6 +349,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onCall={(phone) => {}}
                           onText={(phone) => {}}
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         
                         <CalendarWidget 
@@ -365,6 +357,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onViewAll={() => {}}
                           onAddAppointment={() => {}}
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         </div>
                       </DashboardErrorBoundary>
@@ -379,6 +372,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onViewTicket={(id) => {}}
                           userType="client"
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         
                         <EstimatesWidget 
@@ -390,11 +384,13 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onDownloadEstimate={(id) => {}}
                           userType="client"
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         
                         <PlanUsageWidget 
                           planInfo={planInfo} 
                           onUpgrade={() => {}} 
+                          loading={isLoading}
                         />
                         </div>
                       </DashboardErrorBoundary>
@@ -409,6 +405,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onDownloadInvoice={() => {}}
                           userType="client"
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         
                         <DocumentsWidget 
@@ -418,6 +415,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onDownloadDocument={() => {}}
                           onViewDocument={() => {}}
                           className="col-span-1"
+                          loading={isLoading}
                         />
                         </div>
                       </DashboardErrorBoundary>
@@ -517,6 +515,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           <PlanUsageWidget 
                             planInfo={planInfo} 
                             onUpgrade={() => {}} 
+                            loading={isLoading}
                           />
                         </div>
                       </Card>
@@ -535,18 +534,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                                 {planInfo?.consultingUsage?.used ?? 0} / {planInfo?.consultingUsage?.total ?? 0}
                               </div>
                               <Progress 
-                                value={planInfo?.consultingUsage && planInfo.consultingUsage.total ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100 : 0} 
-                                {planInfo?.consultingUsage?.used || 0} / {planInfo?.consultingUsage?.total || 0}
-                              </div>
-                              <Progress 
-                                value={planInfo?.consultingUsage?.total
-                                  ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100
-                                  : 0
-                                } 
-                                variant={(
-                                  planInfo?.consultingUsage?.total &&
-                                  (planInfo.consultingUsage.used / planInfo.consultingUsage.total) > 0.8
-                                ) ? 'warning' : 'default'}
+                                value={planInfo?.consultingUsage && planInfo.consultingUsage.total ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100 : 0}
                               />
                               <p className="text-sm text-navy-600 dark:text-blue-300 mt-3">
                                 {planInfo?.consultingUsage?.used === planInfo?.consultingUsage?.total ? (
@@ -554,7 +542,11 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                                 ) : (
                                   `${(planInfo?.consultingUsage?.total || 0) - (planInfo?.consultingUsage?.used || 0)} hours remaining this cycle`
                                 )}
-                            <div className="bg-gray-50 dark:bg-gray-800/80 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 dark:bg-gray-800/80 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
                               <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-3">Recent Consulting Activity</h3>
                               <div className="space-y-3">
                                 {clientTimeEntries.slice(0, 3).map((entry, index) => (
@@ -704,6 +696,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onDownloadInvoice={(id) => {}}
                           userType="client"
                           className="h-full"
+                          loading={isLoading}
                         />
                         
                         <EstimatesWidget 
@@ -715,6 +708,7 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                           onDownloadEstimate={(id) => {}}
                           userType="client"
                           className="h-full"
+                          loading={isLoading}
                         />
                       </div>
                       
