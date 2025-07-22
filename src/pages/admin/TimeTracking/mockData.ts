@@ -39,7 +39,8 @@ export const filterTimeEntries = (entries: TimeEntry[], searchTerm: string): Tim
   return entries.filter(entry => 
     entry.description.toLowerCase().includes(lowercaseSearch) ||
     entry.clientName.toLowerCase().includes(lowercaseSearch) ||
-    entry.taskType.toLowerCase().includes(lowercaseSearch) ||
+    entry.projectName.toLowerCase().includes(lowercaseSearch) ||
+    entry.userName.toLowerCase().includes(lowercaseSearch) ||
     entry.status.toLowerCase().includes(lowercaseSearch)
   );
 };
