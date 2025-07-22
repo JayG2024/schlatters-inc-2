@@ -4,6 +4,7 @@ import Sidebar from '../../components/dashboard/Sidebar';
 import Header from '../../components/dashboard/Header';
 import { useAuth } from '../../contexts/SupabaseAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useOpenPhoneData, useCallStatistics } from '../../hooks/useOpenPhoneData';
 
 // Import pages
 import OverviewPage from './Overview';
@@ -73,6 +74,10 @@ const AdminDashboard = () => {
   const [aiQuery, setAiQuery] = useState('');
   const [isProcessingQuery, setIsProcessingQuery] = useState(false);
   const [aiResponse, setAiResponse] = useState<any>(null);
+  
+  // Use OpenPhone data hooks
+  const { calls, messages, loading: openPhoneLoading, syncData, syncing } = useOpenPhoneData();
+  const { stats: callStats, loading: statsLoading } = useCallStatistics();
 
   useEffect(() => {
     // Simulate loading data
@@ -395,11 +400,11 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       <KPICard
                       title="Active Customers"
-                      value="0"
+                      value={new Set([...calls.map(c => c.client_id), ...messages.map(m => m.client_id)]).size.toString()}
                       icon={<Users size={24} />}
                       trend={{
                         value: 0,
-                        label: "new this month",
+                        label: "unique customers",
                         direction: "up"
                       }}
                       iconColor="bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400"
@@ -418,12 +423,12 @@ const AdminDashboard = () => {
                     />
                     
                     <KPICard
-                      title="Calls This Week"
-                      value="0"
+                      title="Total Calls"
+                      value={callStats.totalCalls.toString()}
                       icon={<Phone size={24} />}
                       trend={{
-                        value: 0,
-                        label: "vs last week",
+                        value: callStats.averageDuration ? Math.round(callStats.averageDuration) : 0,
+                        label: "avg duration (sec)",
                         direction: "up"
                       }}
                       iconColor="bg-purple-50 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400"
@@ -556,36 +561,57 @@ const AdminDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {mockRecentCalls.map((call) => (
-                          <div key={call.id} className="flex items-start justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div className="flex items-start gap-3">
-                              <div className={`p-2 rounded-full ${
-                                call.type === 'support' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' : 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
-                              }`}>
-                                <Phone size={14} />
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-gray-900 dark:text-gray-100">{call.customerName}</h4>
-                                  <span className={getSentimentColor(call.sentiment)}>{getSentimentIcon(call.sentiment)}</span>
-                                </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                  {call.type === 'support' ? 'Support' : 'Sales'} • {call.duration} • 
-                                  {call.billable ? ' Billable' : ' Non-billable'}
-                                </p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{call.summary}</p>
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatDateTime(call.timestamp)}
-                            </div>
+                        {openPhoneLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader size={24} className="animate-spin text-gray-400" />
                           </div>
-                        ))}
-                        <div className="text-center pt-2">
-                          <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={16} />} className="text-gray-700 dark:text-gray-300">
-                            View All Calls
-                          </Button>
-                        </div>
+                        ) : calls.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 dark:text-gray-400 mb-4">No calls recorded yet</p>
+                            <Button 
+                              onClick={syncData} 
+                              disabled={syncing}
+                              leftIcon={syncing ? <Loader size={16} className="animate-spin" /> : null}
+                            >
+                              {syncing ? 'Syncing...' : 'Sync OpenPhone Data'}
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            {calls.slice(0, 5).map((call) => (
+                              <div key={call.id} className="flex items-start justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                  <div className={`p-2 rounded-full ${
+                                    call.direction === 'inbound' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' : 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
+                                  }`}>
+                                    <Phone size={14} />
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                        {call.client?.name || 'Unknown Customer'}
+                                      </h4>
+                                    </div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                      {call.direction} • {call.duration}s • {call.status}
+                                    </p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {call.direction === 'inbound' ? `From: ${call.from_number}` : `To: ${call.to_number}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {formatDateTime(call.start_time)}
+                                </div>
+                              </div>
+                            ))}
+                            <div className="text-center pt-2">
+                              <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={16} />} className="text-gray-700 dark:text-gray-300">
+                                View All Calls
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
                     </DashboardErrorBoundary>
