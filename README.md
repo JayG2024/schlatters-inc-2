@@ -1,4 +1,4 @@
-# Schlatters Inc - Phone Support Billing Platform
+# Schlatter's Inc. - Phone Support Billing Platform
 
 A specialized CRM and billing system for phone-based technical support services.
 

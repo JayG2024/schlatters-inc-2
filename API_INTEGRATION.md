@@ -1,6 +1,6 @@
 # API Integration Guide
 
-This document outlines the API endpoints and webhooks available for integrating Schlatters Inc with external services.
+This document outlines the API endpoints and webhooks available for integrating Schlatter's Inc. with external services.
 
 ## Webhook Endpoints
 
@@ -73,7 +73,7 @@ POST /api/calls/transcripts
   "transcript_segments": [
     {
       "speaker": "agent",
-      "text": "Thank you for calling Schlatters Inc...",
+      "text": "Thank you for calling Schlatter's Inc....",
       "timestamp": 0,
       "sentiment": "positive"
     },

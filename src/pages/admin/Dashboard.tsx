@@ -392,7 +392,7 @@ const AdminDashboard = () => {
                 <div className="space-y-6 px-6 pb-6">
                   {/* Enhanced Header */}
                   <Header 
-                    title="Schlatter's Inc Dashboard"
+                    title="Schlatter's Inc. Dashboard"
                     subtitle={`Welcome back, ${user?.email || 'Admin'}. Here's your business overview for today.`}
                     notifications={notifications}
                     onMarkAsRead={handleMarkAsRead}

@@ -1,4 +1,4 @@
-# Quick Setup Guide for Schlatters Inc
+# Quick Setup Guide for Schlatter's Inc.
 
 ## Step 1: Add Environment Variables to Vercel
 

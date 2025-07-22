@@ -1,4 +1,4 @@
-# Vercel Deployment Guide for Schlatters Inc
+# Vercel Deployment Guide for Schlatter's Inc.
 
 ## Quick Deploy Steps
 

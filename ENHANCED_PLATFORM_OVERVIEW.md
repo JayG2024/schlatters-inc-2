@@ -1,4 +1,4 @@
-# Schlatters Inc - Complete Platform Overview
+# Schlatter's Inc. - Complete Platform Overview
 
 ## Business Model: CRM + Phone Support Billing
 

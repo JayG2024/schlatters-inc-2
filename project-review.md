@@ -1,4 +1,4 @@
-# Project Review: Schlatters Inc - Phone Support Billing Platform
+# Project Review: Schlatter's Inc. - Phone Support Billing Platform
 
 ## 1. Summary
 
