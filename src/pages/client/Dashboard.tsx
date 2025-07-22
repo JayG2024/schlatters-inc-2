@@ -188,7 +188,7 @@ const ClientDashboard = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Plan</p>
-                                <p className="text-xl font-bold mt-1 text-gray-900 dark:text-gray-100">{planInfo.tier} Plan</p>
+                                <p className="text-xl font-bold mt-1 text-gray-900 dark:text-gray-100">{planInfo?.tier ? `${planInfo.tier} Plan` : 'N/A'}</p>
                               </div>
                               <div className="p-3 bg-blue-50 dark:bg-blue-900/50 rounded-lg">
                                 <Users size={20} className="text-blue-600 dark:text-blue-400" />
@@ -196,7 +196,7 @@ const ClientDashboard = () => {
                             </div>
                             <div className="mt-3 text-xs font-medium text-gray-600 dark:text-gray-400">
                               <span>Renews: </span>
-                              <span>{planInfo.renewalDate}</span>
+                              <span>{planInfo?.renewalDate || 'N/A'}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -284,7 +284,7 @@ const ClientDashboard = () => {
                               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Core CRM services including client database management and relationship tracking</p>
                               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                                 <span>Since: Apr 1, 2025</span>
-                                <span>Tier: {planInfo.tier}</span>
+                                <span>Tier: {planInfo?.tier || 'N/A'}</span>
                               </div>
                             </div>
                             
@@ -402,14 +402,14 @@ const ClientDashboard = () => {
                           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                             <div>
                               <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium mb-2">
-                                {planInfo.tier} Plan
+                                {planInfo?.tier ? `${planInfo.tier} Plan` : 'N/A'}
                               </span>
                               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Business Service Package</h3>
                               <p className="text-gray-600 dark:text-gray-400 mt-1">Comprehensive CRM and client management solution</p>
                             </div>
                             <div className="mt-4 md:mt-0">
                               <div className="text-xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(1500)}/month</div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Next renewal: {planInfo.renewalDate}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Next renewal: {planInfo?.renewalDate || 'N/A'}</div>
                               <Button size="sm" className="mt-3">Manage Plan</Button>
                             </div>
                           </div>
@@ -498,17 +498,17 @@ const ClientDashboard = () => {
                             <div className="bg-navy-50 dark:bg-blue-900/20 rounded-lg p-5">
                               <h3 className="font-medium text-navy-800 dark:text-blue-300 mb-3">Consulting Hours</h3>
                               <div className="text-3xl font-bold text-navy-800 dark:text-blue-200 mb-2">
-                                {planInfo.consultingUsage.used} / {planInfo.consultingUsage.total}
+                                {planInfo?.consultingUsage?.used ?? 0} / {planInfo?.consultingUsage?.total ?? 0}
                               </div>
                               <Progress 
-                                value={(planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100} 
-                                variant={planInfo.consultingUsage.used / planInfo.consultingUsage.total > 0.8 ? 'warning' : 'default'}
+                                value={planInfo?.consultingUsage && planInfo.consultingUsage.total ? (planInfo.consultingUsage.used / planInfo.consultingUsage.total) * 100 : 0} 
+                                variant={planInfo?.consultingUsage && planInfo.consultingUsage.total && (planInfo.consultingUsage.used / planInfo.consultingUsage.total > 0.8) ? 'warning' : 'default'}
                               />
                               <p className="text-sm text-navy-600 dark:text-blue-300 mt-3">
-                                {planInfo.consultingUsage.used === planInfo.consultingUsage.total ? (
+                                {planInfo?.consultingUsage && planInfo.consultingUsage.used === planInfo.consultingUsage.total ? (
                                   "You've used all your allocated consulting hours"
                                 ) : (
-                                  `${planInfo.consultingUsage.total - planInfo.consultingUsage.used} hours remaining this cycle`
+                                  `${planInfo?.consultingUsage?.total && planInfo?.consultingUsage?.used !== undefined ? planInfo.consultingUsage.total - planInfo.consultingUsage.used : 'N/A'} hours remaining this cycle`
                                 )}
                               </p>
                             </div>

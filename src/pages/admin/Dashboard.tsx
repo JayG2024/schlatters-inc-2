@@ -5,6 +5,7 @@ import Header from '../../components/dashboard/Header';
 import { useAuth } from '../../contexts/SupabaseAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useOpenPhoneData, useCallStatistics } from '../../hooks/useOpenPhoneData';
+import { useQuickBooksData, useOverdueInvoices } from '../../hooks/useQuickBooksData';
 
 // Import pages
 import OverviewPage from './Overview';
@@ -78,6 +79,10 @@ const AdminDashboard = () => {
   // Use OpenPhone data hooks
   const { calls, messages, loading: openPhoneLoading, syncData, syncing } = useOpenPhoneData();
   const { stats: callStats, loading: statsLoading } = useCallStatistics();
+  
+  // Use QuickBooks data hooks
+  const { stats: qbStats, loading: qbLoading, syncData: syncQBData, syncing: qbSyncing } = useQuickBooksData();
+  const { overdueInvoices, loading: overdueLoading } = useOverdueInvoices();
 
   useEffect(() => {
     // Simulate loading data
@@ -411,12 +416,12 @@ const AdminDashboard = () => {
                     />
                     
                     <KPICard
-                      title="Monthly Revenue"
-                      value={formatCurrency(0)}
+                      title="Total Revenue"
+                      value={formatCurrency(qbStats.totalRevenue)}
                       icon={<DollarSign size={24} />}
                       trend={{
-                        value: 0,
-                        label: "vs last month",
+                        value: qbStats.totalCustomers,
+                        label: "QuickBooks customers",
                         direction: "up"
                       }}
                       iconColor="bg-green-50 text-green-600 dark:bg-green-900/50 dark:text-green-400"
@@ -436,12 +441,12 @@ const AdminDashboard = () => {
                     
                     <KPICard
                       title="Outstanding Invoices"
-                      value={formatCurrency(0)}
+                      value={formatCurrency(qbStats.outstandingInvoices)}
                       icon={<AlertTriangle size={24} />}
                       trend={{
-                        value: 0,
-                        label: "needs attention",
-                        direction: "down"
+                        value: qbStats.overdueInvoices,
+                        label: "overdue",
+                        direction: qbStats.overdueInvoices > 0 ? "up" : "down"
                       }}
                       iconColor="bg-amber-50 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"
                     />
@@ -629,33 +634,53 @@ const AdminDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {mockOutstandingInvoices.map((invoice) => (
-                          <div key={invoice.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium text-gray-900 dark:text-gray-100">{invoice.number}</h4>
-                                {invoice.status === 'overdue' && (
-                                  <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-full">
-                                    {invoice.daysOverdue} days overdue
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{invoice.customerName}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">Due: {new Date(invoice.dueDate).toLocaleDateString()}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.amount)}</p>
-                              <Button size="sm" variant={invoice.status === 'overdue' ? 'default' : 'outline'}>
-                                {invoice.status === 'overdue' ? 'Send Reminder' : 'View'}
+                        {overdueLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader size={24} className="animate-spin text-gray-400" />
+                          </div>
+                        ) : overdueInvoices.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 dark:text-gray-400 mb-4">No overdue invoices</p>
+                            <Button 
+                              onClick={syncQBData} 
+                              disabled={qbSyncing}
+                              leftIcon={qbSyncing ? <Loader size={16} className="animate-spin" /> : null}
+                            >
+                              {qbSyncing ? 'Syncing...' : 'Sync QuickBooks Data'}
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            {overdueInvoices.slice(0, 5).map((invoice) => {
+                              const daysOverdue = Math.floor((new Date().getTime() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24));
+                              return (
+                                <div key={invoice.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-medium text-gray-900 dark:text-gray-100">{invoice.invoice_number}</h4>
+                                      <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 text-xs rounded-full">
+                                        {daysOverdue} days overdue
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{invoice.client?.name || 'Unknown'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Due: {new Date(invoice.due_date).toLocaleDateString()}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.balance)}</p>
+                                    <Button size="sm" variant="default">
+                                      Send Reminder
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div className="text-center pt-2">
+                              <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={16} />} className="text-gray-700 dark:text-gray-300">
+                                View All Invoices
                               </Button>
                             </div>
-                          </div>
-                        ))}
-                        <div className="text-center pt-2">
-                          <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={16} />} className="text-gray-700 dark:text-gray-300">
-                            View All Invoices
-                          </Button>
-                        </div>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
                     </DashboardErrorBoundary>

@@ -1,9 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// ↓↓ Replace the original client-initialization lines with this ↓↓
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase configuration missing');
+    }
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+}
 
 interface OpenPhoneCall {
   id: string;
@@ -36,19 +47,67 @@ interface OpenPhoneMessage {
   updatedAt: string;
 }
 
-async function fetchFromOpenPhone(endpoint: string, apiKey: string) {
-  const response = await fetch(`https://api.openphone.com/v1${endpoint}`, {
-    headers: {
-      'Authorization': apiKey,
-      'Content-Type': 'application/json'
+async function fetchFromOpenPhone(endpoint: string, apiKey: string, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`https://api.openphone.com/v1${endpoint}`, {
+      headers: {
+        'Authorization': apiKey,
+        'Content-Type': 'application/json'
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`OpenPhone API error: ${response.status} ${response.statusText} - ${errorBody}`);
     }
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenPhone API error: ${response.status} ${response.statusText}`);
+    return response.json();
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('OpenPhone API request timed out');
+    }
+    throw error;
   }
+}
 
-  return response.json();
+// Shared function to get or create a client by phone number
+async function getOrCreateClient(phoneNumber: string, supabase: ReturnType<typeof createClient>) {
+  if (!phoneNumber || typeof phoneNumber !== 'string' || !phoneNumber.trim()) {
+    throw new Error('Invalid phone number');
+  }
+  const clientName = `Customer ${phoneNumber}`;
+  // Check if client exists
+  const { data: existingClient } = await supabase
+    .from('clients')
+    .select('id')
+    .eq('phone', phoneNumber)
+    .single();
+
+  if (existingClient && typeof existingClient.id === 'string') {
+    return existingClient.id;
+  } else {
+    // Create a new client
+    const sanitizedEmail = `${phoneNumber.replace(/\D/g, '')}@placeholder.com`;
+    const { data: newClient, error: clientError } = await supabase
+      .from('clients')
+      .insert({
+        name: clientName,
+        phone: phoneNumber,
+        email: sanitizedEmail,
+        subscription_plan: 'Basic',
+        subscription_status: 'active',
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    if (clientError) throw clientError;
+    if (!newClient || typeof newClient.id !== 'string') {
+      throw new Error('Failed to create new client');
+    }
+    return newClient.id;
+  }
 }
 
 async function syncCalls(apiKey: string, limit = 100) {
@@ -63,46 +122,16 @@ async function syncCalls(apiKey: string, limit = 100) {
     }
 
     let synced = 0;
-    const errors: any[] = [];
+    const errors: { callId: string; error: unknown }[] = [];
 
     for (const call of calls) {
       try {
         // Determine the customer phone number
         const phoneNumber = call.direction === 'inbound' ? call.from : call.to;
-        const clientName = `Customer ${phoneNumber}`;
-
-        // Check if client exists
-        const { data: existingClient } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('phone', phoneNumber)
-          .single();
-
-        let clientId: string;
-
-        if (existingClient) {
-          clientId = existingClient.id;
-        } else {
-          // Create a new client
-          const { data: newClient, error: clientError } = await supabase
-            .from('clients')
-            .insert({
-              name: clientName,
-              phone: phoneNumber,
-              email: `${phoneNumber.replace(/\D/g, '')}@placeholder.com`,
-              subscription_plan: 'Basic',
-              subscription_status: 'active',
-              created_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (clientError) throw clientError;
-          clientId = newClient.id;
-        }
-
+        // Use shared function to get or create client
+        const clientId = await getOrCreateClient(phoneNumber, supabase!);
         // Insert call record
-        const { error: callError } = await supabase
+        const { error: callError } = await supabase!
           .from('calls')
           .upsert({
             id: call.id,
@@ -120,10 +149,8 @@ async function syncCalls(apiKey: string, limit = 100) {
           }, {
             onConflict: 'id'
           });
-
         if (callError) throw callError;
         synced++;
-
       } catch (error) {
         console.error(`Error syncing call ${call.id}:`, error);
         errors.push({ callId: call.id, error });
@@ -150,6 +177,10 @@ async function syncMessages(apiKey: string, limit = 100) {
       return { synced: 0, errors: [] };
     }
 
+    if (!supabase) {
+      supabase = getSupabaseClient();
+    }
+
     let synced = 0;
     const errors: any[] = [];
 
@@ -157,40 +188,10 @@ async function syncMessages(apiKey: string, limit = 100) {
       try {
         // Determine the customer phone number
         const phoneNumber = message.direction === 'inbound' ? message.from : message.to;
-        const clientName = `Customer ${phoneNumber}`;
-
-        // Check if client exists
-        const { data: existingClient } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('phone', phoneNumber)
-          .single();
-
-        let clientId: string;
-
-        if (existingClient) {
-          clientId = existingClient.id;
-        } else {
-          // Create a new client
-          const { data: newClient, error: clientError } = await supabase
-            .from('clients')
-            .insert({
-              name: clientName,
-              phone: phoneNumber,
-              email: `${phoneNumber.replace(/\D/g, '')}@placeholder.com`,
-              subscription_plan: 'Basic',
-              subscription_status: 'active',
-              created_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (clientError) throw clientError;
-          clientId = newClient.id;
-        }
-
+        // Use shared function to get or create client
+        const clientId = await getOrCreateClient(phoneNumber, supabase!);
         // Insert message record
-        const { error: messageError } = await supabase
+        const { error: messageError } = await supabase!
           .from('messages')
           .upsert({
             id: message.id,
@@ -205,10 +206,8 @@ async function syncMessages(apiKey: string, limit = 100) {
           }, {
             onConflict: 'id'
           });
-
         if (messageError) throw messageError;
         synced++;
-
       } catch (error) {
         console.error(`Error syncing message ${message.id}:`, error);
         errors.push({ messageId: message.id, error });
@@ -229,14 +228,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // --- Authentication check ---
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const expectedToken = process.env.SYNC_API_TOKEN;
+  if (!expectedToken) {
+    return res.status(500).json({ error: 'Sync API token not configured' });
+  }
+  if (!authHeader || typeof authHeader !== 'string' || authHeader.replace('Bearer ', '') !== expectedToken) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid or missing token' });
+  }
+
+  // --- Rate limiting and concurrency control (pseudo-implementation) ---
+  // In production, use Vercel Edge Config, Redis, or another store for distributed rate limiting and queuing.
+  // Example (pseudo):
+  // const rateLimitKey = `sync:${req.ip}`;
+  // const requestCount = await getRequestCount(rateLimitKey);
+  // if (requestCount > MAX_REQUESTS) {
+  //   return res.status(429).json({ error: 'Too many requests, please try again later.' });
+  // }
+  // await incrementRequestCount(rateLimitKey);
+  // For exponential backoff, track retry attempts and delay accordingly.
+  // For request queuing, use a queueing system to limit concurrent syncs.
+
   const apiKey = process.env.OPENPHONE_API_KEY;
   
   if (!apiKey) {
     return res.status(500).json({ error: 'OpenPhone API key not configured' });
   }
 
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return res.status(500).json({ error: 'Supabase configuration missing' });
+  if (!supabase) {
+    supabase = getSupabaseClient();
   }
 
   try {
@@ -246,23 +267,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const phoneNumbersResponse = await fetchFromOpenPhone('/phone-numbers', apiKey);
     const phoneNumbers = phoneNumbersResponse.data || [];
 
-    // Sync calls and messages
-    const callsResult = await syncCalls(apiKey);
-    const messagesResult = await syncMessages(apiKey);
-
     const summary = {
       success: true,
       phoneNumbers: phoneNumbers.length,
       calls: {
-        synced: callsResult.synced,
-        errors: callsResult.errors.length
+        synced: 0, // Placeholder, will be updated after sync
+        errors: 0 // Placeholder, will be updated after sync
       },
       messages: {
-        synced: messagesResult.synced,
-        errors: messagesResult.errors.length
+        synced: 0, // Placeholder, will be updated after sync
+        errors: 0 // Placeholder, will be updated after sync
       },
       timestamp: new Date().toISOString()
     };
+
+    // Sync calls and messages
+    const callsResult = await syncCalls(apiKey);
+    const messagesResult = await syncMessages(apiKey);
+
+    summary.calls.synced = callsResult.synced;
+    summary.calls.errors = callsResult.errors.length;
+    summary.messages.synced = messagesResult.synced;
+    summary.messages.errors = messagesResult.errors.length;
 
     console.log('Sync completed:', summary);
     return res.status(200).json(summary);
