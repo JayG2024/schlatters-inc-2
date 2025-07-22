@@ -4,7 +4,13 @@ const path = require('path');
 
 // Read .env.local file
 const envPath = path.join(__dirname, '..', '.env.local');
-const envContent = fs.readFileSync(envPath, 'utf8');
+let envContent;
+try {
+  envContent = fs.readFileSync(envPath, 'utf8');
+} catch (error) {
+  console.error(`❌ Error reading .env.local file: ${error.message}`);
+  process.exit(1);
+}
 const envVars = {};
 
 envContent.split('\n').forEach(line => {
@@ -19,6 +25,15 @@ envContent.split('\n').forEach(line => {
 
 const apiKey = envVars.OPENPHONE_API_KEY;
 
+if (!apiKey) {
+  console.error('❌ OPENPHONE_API_KEY is required but not found in .env.local');
+  process.exit(1);
+}
+
+if (!apiKey.trim()) {
+  console.error('❌ OPENPHONE_API_KEY cannot be empty');
+  process.exit(1);
+}
 async function fetchOpenPhoneData() {
   const headers = {
     'Authorization': apiKey,
@@ -29,6 +44,9 @@ async function fetchOpenPhoneData() {
     // Fetch recent calls
     console.log('📞 Fetching recent calls...');
     const callsResponse = await fetch('https://api.openphone.com/v1/calls?limit=10', { headers });
+    if (!callsResponse.ok) {
+      throw new Error(`HTTP error! status: ${callsResponse.status}`);
+    }
     const calls = await callsResponse.json();
     
     console.log(`\nFound ${calls.data?.length || 0} calls:`);
@@ -51,6 +69,9 @@ async function fetchOpenPhoneData() {
     // Fetch recent messages
     console.log('\n\n💬 Fetching recent messages...');
     const messagesResponse = await fetch('https://api.openphone.com/v1/messages?limit=10', { headers });
+    if (!messagesResponse.ok) {
+      throw new Error(`HTTP error! status: ${messagesResponse.status}`);
+    }
     const messages = await messagesResponse.json();
     
     console.log(`\nFound ${messages.data?.length || 0} messages:`);

@@ -42,6 +42,14 @@ interface OpenPhoneMessage {
   updatedAt: string;
 }
 
+interface OpenPhonePhoneNumber {
+  id: string;
+  phoneNumber: string;
+  status?: string;
+  type?: string;
+  [key: string]: any;
+}
+
 export class OpenPhoneSync {
   private apiKey: string;
   private baseUrl = 'https://api.openphone.com/v1';
@@ -213,10 +221,42 @@ export class OpenPhoneSync {
     try {
       console.log('Syncing phone numbers from OpenPhone...');
       const response = await this.fetchFromOpenPhone('/phone-numbers');
-      const phoneNumbers = response.data || [];
+      const phoneNumbers: OpenPhonePhoneNumber[] = response.data || [];
 
-      console.log(`Found ${phoneNumbers.length} phone numbers`);
-      return phoneNumbers;
+      if (phoneNumbers.length === 0) {
+        console.log('No phone numbers to sync');
+        return { synced: 0, errors: [] };
+      }
+
+      let synced = 0;
+      const errors: any[] = [];
+
+      for (const phoneNumberObj of phoneNumbers) {
+        try {
+          const { id, phoneNumber, status, type, ...rest } = phoneNumberObj;
+
+          const { error: upsertError } = await supabase
+            .from('live_calls')
+            .upsert({
+              call_id: id,
+              phone_number: phoneNumber,
+              status: status || 'active',
+              ...rest,
+              started_at: new Date().toISOString(),
+            }, {
+              onConflict: 'call_id'
+            });
+
+          if (upsertError) throw upsertError;
+          synced++;
+        } catch (error) {
+          console.error(`Error syncing phone number`, error);
+          errors.push({ phoneNumber: phoneNumberObj, error });
+        }
+      }
+
+      console.log(`Synced ${synced} phone numbers with ${errors.length} errors`);
+      return { synced, errors };
 
     } catch (error) {
       console.error('Error syncing phone numbers:', error);
@@ -233,7 +273,7 @@ export class OpenPhoneSync {
       const messagesResult = await this.syncMessages();
 
       const summary = {
-        phoneNumbers: phoneNumbers.length,
+        phoneNumbers: phoneNumbers.synced,
         calls: callsResult,
         messages: messagesResult,
         timestamp: new Date().toISOString()
