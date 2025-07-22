@@ -28,7 +28,7 @@ import { formatCurrency, formatDate } from '../../../lib/utils';
 import { mockTimeEntries, formatDuration } from './mockData';
 
 // Mock data for the commented-out sections
-const categoryHours = {
+const clientHours = {
   'Client A': { billable: 1200, nonBillable: 300 },
   'Client B': { billable: 800, nonBillable: 150 },
   'Client C': { billable: 600, nonBillable: 200 }
@@ -39,6 +39,20 @@ const teamMembers = [
   { id: '2', name: 'Jane Smith', hours: 42, billablePercentage: 92 },
   { id: '3', name: 'Mike Johnson', hours: 28, billablePercentage: 75 }
 ];
+
+type CategoryHours = {
+  [category: string]: {
+    billable: number;
+    entries: number;
+  };
+};
+
+const categoryHours: CategoryHours = {
+  'Consulting': { billable: 900, entries: 12 },
+  'Development': { billable: 1200, entries: 18 },
+  'Design': { billable: 600, entries: 7 },
+  'Support': { billable: 300, entries: 5 },
+};
 
 const BillableHours: React.FC = () => {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter' | 'year' | 'custom'>('month');
@@ -70,6 +84,9 @@ const BillableHours: React.FC = () => {
   const handleSendInvoice = () => {
     setShowBillingModal(true);
   };
+
+  const [showCategoryChart, setShowCategoryChart] = useState(true); // Feature flag
+  const [categoryChartLoading, setCategoryChartLoading] = useState(false); // Loading state
 
   return (
     <div className="space-y-6">
@@ -282,55 +299,51 @@ const BillableHours: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Simple visualization of the category breakdown */}
-            <div className="flex flex-col justify-center">
+            {categoryChartLoading ? (
+              <div className="flex items-center justify-center h-48">
+                <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></span>
+                <span className="ml-2 text-purple-600">Loading chart...</span>
+              </div>
+            ) : !showCategoryChart ? (
+              <div className="flex items-center justify-center h-48 text-gray-400">
+                Category breakdown chart is disabled.
+              </div>
+            ) : (
               <div className="relative w-48 h-48 mx-auto">
                 <svg viewBox="0 0 100 100" className="w-full h-full">
-                  {/* Object.entries(categoryHours).map(([category, data], index, arr) => { */}
-                  {/*   const billableOnly = data.billable; */}
-                  {/*   const total = Object.values(categoryHours).reduce((sum, cat) => sum + cat.billable, 0); */}
-                  {/*   const percentage = (billableOnly / total) * 100; */}
-                    
-                  {/*   // Calculate the slice */}
-                  {/*   let startAngle = 0; */}
-                  {/*   for (let i = 0; i < index; i++) { */}
-                  {/*     const prevCategory = arr[i][0]; */}
-                  {/*     const prevData = categoryHours[prevCategory]; */}
-                  {/*     startAngle += (prevData.billable / total) * 360; */}
-                  {/*   } */}
-                    
-                  {/*   const endAngle = startAngle + (percentage * 3.6); */}
-                    
-                  {/*   // Convert angles to radians */}
-                  {/*   const startRad = (startAngle - 90) * (Math.PI / 180); */}
-                  {/*   const endRad = (endAngle - 90) * (Math.PI / 180); */}
-                    
-                  {/*   // Calculate points */}
-                  {/*   const x1 = 50 + 40 * Math.cos(startRad); */}
-                  {/*   const y1 = 50 + 40 * Math.sin(startRad); */}
-                  {/*   const x2 = 50 + 40 * Math.cos(endRad); */}
-                  {/*   const y2 = 50 + 40 * Math.sin(endRad); */}
-                    
-                  {/*   // Determine if the arc should be drawn as a large arc */}
-                  {/*   const largeArcFlag = percentage > 50 ? 1 : 0; */}
-                    
-                  {/*   // Generate a color based on index */}
-                  {/*   const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']; */}
-                  {/*   const color = colors[index % colors.length]; */}
-                    
-                  {/*   return ( */}
-                  {/*     <path */}
-                  {/*       key={category} */}
-                  {/*       d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2} Z`} */}
-                  {/*       fill={color} */}
-                  {/*       stroke="white" */}
-                  {/*       strokeWidth="1" */}
-                  {/*     /> */}
-                  {/*   ); */}
-                  {/* })} */}
+                  {Object.entries(categoryHours).map(([category, data], index, arr) => {
+                    const billableOnly = data.billable;
+                    const total = Object.values(categoryHours).reduce((sum, cat) => sum + cat.billable, 0);
+                    const percentage = (billableOnly / total) * 100;
+                    let startAngle = 0;
+                    for (let i = 0; i < index; i++) {
+                      const prevCategory = arr[i][0];
+                      const prevData = categoryHours[prevCategory];
+                      startAngle += (prevData.billable / total) * 360;
+                    }
+                    const endAngle = startAngle + (percentage * 3.6);
+                    const startRad = (startAngle - 90) * (Math.PI / 180);
+                    const endRad = (endAngle - 90) * (Math.PI / 180);
+                    const x1 = 50 + 40 * Math.cos(startRad);
+                    const y1 = 50 + 40 * Math.sin(startRad);
+                    const x2 = 50 + 40 * Math.cos(endRad);
+                    const y2 = 50 + 40 * Math.sin(endRad);
+                    const largeArcFlag = percentage > 50 ? 1 : 0;
+                    const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+                    const color = colors[index % colors.length];
+                    return (
+                      <path
+                        key={category}
+                        d={`M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
+                        fill={color}
+                        stroke="white"
+                        strokeWidth="1"
+                      />
+                    );
+                  })}
                 </svg>
               </div>
-            </div>
+            )}
             
             {/* Category listing */}
             <div className="space-y-4">
@@ -449,9 +462,9 @@ const BillableHours: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Client
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="">Select a client</option>
-                  {/* Object.keys(categoryHours).map(client => ( */}
+                  {Object.keys(clientHours).map(client => (
+                    <option key={client} value={client}>{client}</option>
+                  ))}
                   {/*   <option key={client} value={client}>{client}</option> */}
                   {/* ))} */}
                 </select>
