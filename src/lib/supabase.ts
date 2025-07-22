@@ -9,6 +9,30 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Auth helper functions
+export const signIn = async (email: string, password: string) => {
+  return await supabase.auth.signInWithPassword({ email, password });
+};
+
+export const signUp = async (email: string, password: string, metadata?: any) => {
+  return await supabase.auth.signUp({ 
+    email, 
+    password,
+    options: {
+      data: metadata
+    }
+  });
+};
+
+export const signOut = async () => {
+  return await supabase.auth.signOut();
+};
+
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+};
+
 // Type definitions for our tables
 export interface Client {
   id: string;
