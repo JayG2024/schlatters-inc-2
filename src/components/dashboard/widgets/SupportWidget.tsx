@@ -40,6 +40,7 @@ interface SupportWidgetProps {
   onViewTicket?: (ticketId: string) => void;
   className?: string;
   userType: 'admin' | 'client';
+  loading?: boolean;
 }
 
 const getStatusBadge = (status: Ticket['status']) => {
@@ -73,6 +74,7 @@ export const SupportWidget: React.FC<SupportWidgetProps> = ({
   onViewTicket,
   className,
   userType,
+  loading = false,
 }) => {
   // Sort tickets: open and in-progress first, then by priority, then by date
   const sortedTickets = [...tickets].sort((a, b) => {
@@ -112,57 +114,65 @@ export const SupportWidget: React.FC<SupportWidgetProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {sortedTickets.slice(0, 4).map((ticket) => (
-          <div 
-            key={ticket.id} 
-            className="p-3 bg-white border border-gray-200 rounded-md hover:border-gray-300 transition-colors cursor-pointer"
-            onClick={() => onViewTicket?.(ticket.id)}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="font-medium text-gray-900">
-                  {ticket.title}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></span>
+          </div>
+        ) : (
+          <>
+            {sortedTickets.slice(0, 4).map((ticket) => (
+              <div 
+                key={ticket.id} 
+                className="p-3 bg-white border border-gray-200 rounded-md hover:border-gray-300 transition-colors cursor-pointer"
+                onClick={() => onViewTicket?.(ticket.id)}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {ticket.title}
+                    </div>
+                    
+                    {userType === 'admin' && (
+                      <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                        <User size={12} />
+                        <span>{ticket.client}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col items-end gap-1">
+                    {getStatusBadge(ticket.status)}
+                    {getPriorityBadge(ticket.priority)}
+                  </div>
                 </div>
                 
-                {userType === 'admin' && (
-                  <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-                    <User size={12} />
-                    <span>{ticket.client}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex flex-col items-end gap-1">
-                {getStatusBadge(ticket.status)}
-                {getPriorityBadge(ticket.priority)}
-              </div>
-            </div>
-            
-            <div className="mt-2 text-sm text-gray-600 line-clamp-2">
-              {ticket.description}
-            </div>
-            
-            <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Clock size={12} />
-                <span>Updated {formatDateTime(ticket.lastUpdated)}</span>
-              </div>
-              
-              {ticket.assignee && userType === 'admin' && (
-                <div className="flex items-center gap-1">
-                  <User size={12} />
-                  <span>Assigned to {ticket.assignee}</span>
+                <div className="mt-2 text-sm text-gray-600 line-clamp-2">
+                  {ticket.description}
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
-        
-        {tickets.length === 0 && (
-          <div className="text-center py-6 text-gray-500">
-            <LifeBuoy size={24} className="mx-auto mb-2 text-gray-400" />
-            <p>No support tickets found</p>
-          </div>
+                
+                <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} />
+                    <span>Updated {formatDateTime(ticket.lastUpdated)}</span>
+                  </div>
+                  
+                  {ticket.assignee && userType === 'admin' && (
+                    <div className="flex items-center gap-1">
+                      <User size={12} />
+                      <span>Assigned to {ticket.assignee}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {tickets.length === 0 && (
+              <div className="text-center py-6 text-gray-500">
+                <LifeBuoy size={24} className="mx-auto mb-2 text-gray-400" />
+                <p>No support tickets</p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 
