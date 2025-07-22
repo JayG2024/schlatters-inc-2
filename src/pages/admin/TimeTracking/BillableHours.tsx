@@ -462,11 +462,10 @@ const BillableHours: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Client
                 </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
                   {Object.keys(clientHours).map(client => (
                     <option key={client} value={client}>{client}</option>
                   ))}
-                  {/*   <option key={client} value={client}>{client}</option> */}
-                  {/* ))} */}
                 </select>
               </div>
               
