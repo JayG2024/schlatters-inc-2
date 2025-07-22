@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
-interface UseAsyncOperationOptions {
-  onSuccess?: (data: any) => void;
+interface UseAsyncOperationOptions<T = any> {
+  onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
   successMessage?: string;
   errorMessage?: string;
@@ -12,7 +12,7 @@ interface UseAsyncOperationOptions {
 
 export const useAsyncOperation = <T = any>(
   operation: (...args: any[]) => Promise<T>,
-  options: UseAsyncOperationOptions = {}
+  options: UseAsyncOperationOptions<T> = {}
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);

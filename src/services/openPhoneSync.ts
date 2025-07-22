@@ -65,6 +65,37 @@ export class OpenPhoneSync {
     return response.json();
   }
 
+  private async findOrCreateClient(phoneNumber: string): Promise<string> {
+    const clientName = `Customer ${phoneNumber}`;
+    // Check if client exists
+    const { data: existingClient } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('phone', phoneNumber)
+      .single();
+
+    if (existingClient) {
+      return existingClient.id;
+    } else {
+      // Create a new client
+      const { data: newClient, error: clientError } = await supabase
+        .from('clients')
+        .insert({
+          name: clientName,
+          phone: phoneNumber,
+          email: `${phoneNumber.replace(/\D/g, '')}@placeholder.com`,
+          subscription_plan: 'Basic',
+          subscription_status: 'active',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (clientError) throw clientError;
+      return newClient.id;
+    }
+  }
+
   async syncCalls(limit = 100) {
     try {
       console.log('Syncing calls from OpenPhone...');
@@ -83,37 +114,7 @@ export class OpenPhoneSync {
         try {
           // First, try to find or create a client based on the phone number
           const phoneNumber = call.direction === 'inbound' ? call.from : call.to;
-          const clientName = `Customer ${phoneNumber}`;
-
-          // Check if client exists
-          const { data: existingClient } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('phone', phoneNumber)
-            .single();
-
-          let clientId: string;
-
-          if (existingClient) {
-            clientId = existingClient.id;
-          } else {
-            // Create a new client
-            const { data: newClient, error: clientError } = await supabase
-              .from('clients')
-              .insert({
-                name: clientName,
-                phone: phoneNumber,
-                email: `${phoneNumber.replace(/\D/g, '')}@placeholder.com`,
-                subscription_plan: 'Basic',
-                subscription_status: 'active',
-                created_at: new Date().toISOString()
-              })
-              .select()
-              .single();
-
-            if (clientError) throw clientError;
-            clientId = newClient.id;
-          }
+          const clientId = await this.findOrCreateClient(phoneNumber);
 
           // Insert call record
           const { error: callError } = await supabase
@@ -171,37 +172,7 @@ export class OpenPhoneSync {
         try {
           // First, try to find or create a client based on the phone number
           const phoneNumber = message.direction === 'inbound' ? message.from : message.to;
-          const clientName = `Customer ${phoneNumber}`;
-
-          // Check if client exists
-          const { data: existingClient } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('phone', phoneNumber)
-            .single();
-
-          let clientId: string;
-
-          if (existingClient) {
-            clientId = existingClient.id;
-          } else {
-            // Create a new client
-            const { data: newClient, error: clientError } = await supabase
-              .from('clients')
-              .insert({
-                name: clientName,
-                phone: phoneNumber,
-                email: `${phoneNumber.replace(/\D/g, '')}@placeholder.com`,
-                subscription_plan: 'Basic',
-                subscription_status: 'active',
-                created_at: new Date().toISOString()
-              })
-              .select()
-              .single();
-
-            if (clientError) throw clientError;
-            clientId = newClient.id;
-          }
+          const clientId = await this.findOrCreateClient(phoneNumber);
 
           // Insert message record
           const { error: messageError } = await supabase
