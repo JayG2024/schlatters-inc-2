@@ -567,7 +567,6 @@ const [serviceHistory, setServiceHistory] = useState<any[]>([]);
                                 View All Time Entries
                               </Button>
                             </div>
-                          </div>
                           
                           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
                             <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-4">Billable Hours Breakdown</h3>
