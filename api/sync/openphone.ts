@@ -65,11 +65,7 @@ async function fetchFromOpenPhone(endpoint: string, apiKey: string, timeoutMs = 
     }
     return response.json();
   } catch (error) {
-     console.error('Sync error:', error);
-     return res.status(500).json({ 
-       success: false,
-       error: error instanceof Error ? error.message : 'Failed to sync OpenPhone data' 
-     });
+    console.error('Sync error:', error);
     if (error.name === 'AbortError') {
       throw new Error('OpenPhone API request timed out');
     }
