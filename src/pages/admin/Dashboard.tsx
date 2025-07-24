@@ -8,6 +8,7 @@ import { useOpenPhoneData, useCallStatistics } from '../../hooks/useOpenPhoneDat
 import { useQuickBooksData, useOverdueInvoices } from '../../hooks/useQuickBooksData';
 
 // Import pages
+import DashboardSummary from './DashboardSummary';
 import OverviewPage from './Overview';
 import CommunicationsPage from './Communications';
 import ClientsPage from './Clients';
@@ -20,6 +21,10 @@ import DocumentsPage from './Documents';
 import DocumentationPage from './Documentation';
 import SettingsPage from './Settings';
 import DebugPage from './Debug';
+import SubscriptionsDetail from './SubscriptionsDetail';
+import SupportLogs from './SupportLogs';
+import InvoicesAging from './InvoicesAging';
+import RemindersRenewals from './RemindersRenewals';
 
 // Import enhanced widgets
 import AdminActivityWidget from '../../components/dashboard/widgets/AdminActivityWidget';
@@ -385,6 +390,10 @@ const AdminDashboard = () => {
         <Routes>
           <Route 
             path="/" 
+            element={<DashboardSummary />}
+          />
+          <Route 
+            path="/classic" 
             element={
               isLoading ? (
                 <LoadingSpinner />
@@ -739,6 +748,10 @@ const AdminDashboard = () => {
           <Route path="/documentation" element={<DocumentationPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/debug" element={<DebugPage />} />
+          <Route path="/subscriptions-detail" element={<SubscriptionsDetail />} />
+          <Route path="/support-logs" element={<SupportLogs />} />
+          <Route path="/invoices-aging" element={<InvoicesAging />} />
+          <Route path="/reminders-renewals" element={<RemindersRenewals />} />
           <Route path="*" element={
             <div className="p-6">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Page Not Found</h1>

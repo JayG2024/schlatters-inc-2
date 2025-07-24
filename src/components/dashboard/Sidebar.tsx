@@ -133,8 +133,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ type }) => {
     {
       to: '/admin',
       icon: <LayoutDashboard size={20} />,
-      label: 'Dashboard',
+      label: 'Dashboard Summary',
       exact: true,
+    },
+    {
+      to: '/admin',
+      icon: <PieChart size={20} />,
+      label: 'Dashboards',
+      children: [
+        { to: '/admin', label: 'Summary Overview', icon: <LayoutDashboard size={16} /> },
+        { to: '/admin/subscriptions-detail', label: 'Subscriptions Detail', icon: <Shield size={16} /> },
+        { to: '/admin/support-logs', label: 'Support Logs', icon: <PhoneCall size={16} /> },
+        { to: '/admin/invoices-aging', label: 'Invoices & Aging', icon: <FileText size={16} /> },
+        { to: '/admin/reminders-renewals', label: 'Reminders & Renewals', icon: <Bell size={16} /> },
+      ],
     },
     {
       to: '/admin/clients',

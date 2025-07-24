@@ -16,6 +16,10 @@ export function formatPercentage(value: number): string {
   return `${Math.round(value)}%`;
 }
 
+export function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(1)}%`;
+}
+
 export function formatDate(date: Date | string): string {
   if (typeof date === 'string') {
     date = new Date(date);

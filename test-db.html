@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Connection</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="status">Testing connection...</div>
+    <div id="results"></div>
+
+    <script>
+        const { createClient } = supabase;
+        
+        // Your Supabase credentials
+        const supabaseUrl = 'https://nolxeuyvwbmlyzhjgkhr.supabase.co';
+        const supabaseKey = 'sb_publishable_l9apLZAn2OyBaAvIAeBQiQ_7sSP2vR2';
+        
+        const client = createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test 1: Check if we can connect
+                statusDiv.innerHTML = 'Connected to Supabase!';
+                
+                // Test 2: Try to fetch from subscriptions table
+                const { data: subscriptions, error: subError } = await client
+                    .from('subscriptions')
+                    .select('*')
+                    .limit(5);
+                
+                if (subError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Subscriptions Error: ${subError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Subscriptions table accessible! Found ${subscriptions?.length || 0} records</p>`;
+                }
+                
+                // Test 3: Try to fetch from clients table
+                const { data: clients, error: clientError } = await client
+                    .from('clients')
+                    .select('*')
+                    .limit(5);
+                
+                if (clientError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Clients Error: ${clientError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Clients table accessible! Found ${clients?.length || 0} records</p>`;
+                }
+                
+                // Test 4: Check auth status
+                const { data: { session } } = await client.auth.getSession();
+                if (session) {
+                    resultsDiv.innerHTML += `<p style="color: green;">Authenticated as: ${session.user.email}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: orange;">Not authenticated</p>`;
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color: red;">Connection Error: ${error.message}</span>`;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
