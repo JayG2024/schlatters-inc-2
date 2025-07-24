@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/SupabaseAuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { cn } from '../lib/utils';
-import { LogIn, AlertCircle, Sun, Moon } from 'lucide-react';
+import { LogIn, AlertCircle, Sun, Moon, UserPlus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signIn, loading } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const { signIn, signUp, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -20,28 +21,47 @@ const Login = () => {
     setError('');
     
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        setError(error.message || 'Invalid email or password');
-        showToast({
-          type: 'error',
-          title: 'Login Failed',
-          message: error.message || 'Invalid email or password'
-        });
+      if (isSignUp) {
+        const { error } = await signUp(email, password);
+        if (error) {
+          setError(error.message || 'Failed to create account');
+          showToast({
+            type: 'error',
+            title: 'Sign Up Failed',
+            message: error.message || 'Failed to create account'
+          });
+        } else {
+          showToast({
+            type: 'success',
+            title: 'Account Created!',
+            message: 'Please check your email to verify your account.'
+          });
+          setIsSignUp(false);
+        }
       } else {
-        showToast({
-          type: 'success',
-          title: 'Login Successful',
-          message: 'Welcome back!'
-        });
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(error.message || 'Invalid email or password');
+          showToast({
+            type: 'error',
+            title: 'Login Failed',
+            message: error.message || 'Invalid email or password'
+          });
+        } else {
+          showToast({
+            type: 'success',
+            title: 'Login Successful',
+            message: 'Welcome back!'
+          });
+        }
       }
       // Navigation is handled by SupabaseAuthProvider
     } catch (err) {
-      const errorMessage = 'Invalid email or password';
+      const errorMessage = isSignUp ? 'Failed to create account' : 'Invalid email or password';
       setError(errorMessage);
       showToast({
         type: 'error',
-        title: 'Login Failed',
+        title: isSignUp ? 'Sign Up Failed' : 'Login Failed',
         message: errorMessage
       });
     }
@@ -72,7 +92,9 @@ const Login = () => {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Welcome to Schlatter's Inc.
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">Sign in to access your dashboard</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                {isSignUp ? 'Create an account to get started' : 'Sign in to access your dashboard'}
+              </p>
             </div>
 
             {error && (
@@ -108,9 +130,6 @@ const Login = () => {
                   placeholder="you@example.com"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Try: admin@example.com / client@example.com
-                </p>
               </div>
 
               <div>
@@ -135,9 +154,6 @@ const Login = () => {
                   placeholder="••••••••"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Try: admin123 / client123
-                </p>
               </div>
 
               <button
@@ -154,24 +170,27 @@ const Login = () => {
                 )}
               >
                 {loading ? (
-                  <span className="animate-pulse">Signing in...</span>
+                  <span className="animate-pulse">{isSignUp ? 'Creating account...' : 'Signing in...'}</span>
                 ) : (
                   <>
-                    <LogIn size={18} />
-                    <span>Sign in</span>
+                    {isSignUp ? <UserPlus size={18} /> : <LogIn size={18} />}
+                    <span>{isSignUp ? 'Create Account' : 'Sign in'}</span>
                   </>
                 )}
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                <p className="mb-2">Demo Accounts:</p>
-                <div className="space-y-1">
-                  <p><strong>Admin:</strong> admin@example.com / admin123</p>
-                  <p><strong>Client:</strong> client@example.com / client123</p>
-                </div>
-              </div>
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                }}
+                className="text-sm text-brand-gold hover:text-brand-gold-dark font-medium transition-colors"
+              >
+                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+              </button>
             </div>
           </div>
         </div>
