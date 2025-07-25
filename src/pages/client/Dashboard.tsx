@@ -77,37 +77,33 @@ const [documents, setDocuments] = useState<any[]>([]);
 const [clientTimeEntries, setClientTimeEntries] = useState<any[]>([]);
 const [serviceHistory, setServiceHistory] = useState<any[]>([]);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // add error state
-    const [error, setError] = useState<string | null>(null);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
-          setError(null);
+        // TODO: Replace with actual Supabase calls
+        // const [planData, commData, appointData] = await Promise.all([
+        //   fetchPlanInfo(),
+        //   fetchCommunications(),
+        //   fetchAppointments()
+        // ]);
 
-          // TODO: Replace with actual Supabase calls
-          // const [planData, commData, appointData] = await Promise.all([
-          //   fetchPlanInfo(),
-          //   fetchCommunications(),
-          //   fetchAppointments()
-          // ]);
+        // setPlanInfo(planData);
+        // setCommunications(commData);
+        // setAppointments(appointData);
 
-          // setPlanInfo(planData);
-          // setCommunications(commData);
-          // setAppointments(appointData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchData();
-    }, [location.pathname]);
-
+    fetchData();
   }, [location.pathname]);
 
   // Loading component
