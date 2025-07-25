@@ -73,27 +73,40 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
 
-    if (!error && data) {
-      setIsAdmin(data.role === 'admin');
+      if (!error && data) {
+        setIsAdmin(data.role === 'admin');
+      } else {
+        // Default to client role if profile doesn't exist
+        setIsAdmin(false);
+      }
+    } catch (err) {
+      console.error('Error checking user role:', err);
+      setIsAdmin(false);
     }
   };
 
   const getUserRole = async (userId?: string): Promise<string | null> => {
     if (!userId) return null;
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
 
-    return data?.role || null;
+      return data?.role || 'client';
+    } catch (err) {
+      console.error('Error getting user role:', err);
+      return 'client';
+    }
   };
 
   const handleSignIn = async (email: string, password: string) => {
