@@ -28,7 +28,7 @@ BEGIN
     new.id, 
     new.email,
     CASE 
-      WHEN new.email LIKE '%@schlatters%' THEN 'admin'
+      WHEN new.email = 'jason@jaydus.ai' OR new.email LIKE '%@schlatters%' THEN 'admin'
       ELSE 'client'
     END
   );
@@ -46,7 +46,7 @@ CREATE TRIGGER on_auth_user_created
 INSERT INTO profiles (id, email, role)
 SELECT id, email, 
   CASE 
-    WHEN email LIKE '%@schlatters%' THEN 'admin'
+    WHEN email = 'jason@jaydus.ai' OR email LIKE '%@schlatters%' THEN 'admin'
     ELSE 'client'
   END
 FROM auth.users

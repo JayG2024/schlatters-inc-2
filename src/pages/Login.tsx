@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/SupabaseAuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { cn } from '../lib/utils';
-import { LogIn, AlertCircle, Sun, Moon, UserPlus } from 'lucide-react';
+import { LogIn, AlertCircle, Sun, Moon, UserPlus, Shield, Users } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Login = () => {
@@ -11,6 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [loginType, setLoginType] = useState<'client' | 'admin'>('client');
   const { signIn, signUp, loading } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { showToast } = useToast();
@@ -97,6 +98,39 @@ const Login = () => {
               </p>
             </div>
 
+            {!isSignUp && (
+              <div className="flex gap-2 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setLoginType('client')}
+                  className={cn(
+                    "flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200",
+                    "flex items-center justify-center gap-2",
+                    loginType === 'client'
+                      ? "bg-brand-gold text-brand-navy shadow-md"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  )}
+                >
+                  <Users size={18} />
+                  <span>Client Login</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginType('admin')}
+                  className={cn(
+                    "flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200",
+                    "flex items-center justify-center gap-2",
+                    loginType === 'admin'
+                      ? "bg-brand-gold text-brand-navy shadow-md"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  )}
+                >
+                  <Shield size={18} />
+                  <span>Admin Login</span>
+                </button>
+              </div>
+            )}
+
             {error && (
               <div className={cn(
                 "flex items-center gap-2 p-3 mb-4 text-sm rounded-lg",
@@ -104,6 +138,16 @@ const Login = () => {
               )}>
                 <AlertCircle size={16} className="flex-shrink-0" />
                 <p>{error}</p>
+              </div>
+            )}
+
+            {loginType === 'admin' && !isSignUp && (
+              <div className={cn(
+                "flex items-center gap-2 p-3 mb-4 text-sm rounded-lg",
+                "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+              )}>
+                <Shield size={16} className="flex-shrink-0" />
+                <p>Admin login for authorized personnel only</p>
               </div>
             )}
 
@@ -127,7 +171,7 @@ const Login = () => {
                     "focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none",
                     "transition-all duration-200"
                   )}
-                  placeholder="you@example.com"
+                  placeholder={loginType === 'admin' ? 'admin@example.com' : 'you@example.com'}
                   required
                 />
               </div>
@@ -173,8 +217,8 @@ const Login = () => {
                   <span className="animate-pulse">{isSignUp ? 'Creating account...' : 'Signing in...'}</span>
                 ) : (
                   <>
-                    {isSignUp ? <UserPlus size={18} /> : <LogIn size={18} />}
-                    <span>{isSignUp ? 'Create Account' : 'Sign in'}</span>
+                    {isSignUp ? <UserPlus size={18} /> : loginType === 'admin' ? <Shield size={18} /> : <LogIn size={18} />}
+                    <span>{isSignUp ? 'Create Account' : loginType === 'admin' ? 'Sign in as Admin' : 'Sign in as Client'}</span>
                   </>
                 )}
               </button>
@@ -189,7 +233,7 @@ const Login = () => {
                 }}
                 className="text-sm text-brand-gold hover:text-brand-gold-dark font-medium transition-colors"
               >
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Create one"}
+                {isSignUp ? 'Already have an account? Sign in' : loginType === 'client' ? "Don't have an account? Create one" : "Back to login"}
               </button>
             </div>
           </div>
