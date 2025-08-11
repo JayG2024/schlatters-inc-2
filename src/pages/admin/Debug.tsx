@@ -63,7 +63,8 @@ const DebugPage: React.FC = () => {
     results.envVars = {
       VITE_SUPABASE_URL: !!import.meta.env.VITE_SUPABASE_URL,
       VITE_SUPABASE_ANON_KEY: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-      url: import.meta.env.VITE_SUPABASE_URL,
+      // Don't expose actual URL in production
+      url: import.meta.env.DEV ? import.meta.env.VITE_SUPABASE_URL : (import.meta.env.VITE_SUPABASE_URL ? '***HIDDEN***' : 'Not Set'),
     };
     
     setTestResults(results);

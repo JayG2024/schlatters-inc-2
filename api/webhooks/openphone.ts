@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '../types';
 import { createClient } from '@supabase/supabase-js';
+import * as crypto from 'crypto';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
@@ -48,13 +49,48 @@ interface OpenPhoneSMSEvent {
 
 type OpenPhoneWebhookEvent = OpenPhoneCallEvent | OpenPhoneSMSEvent;
 
-// Verify webhook signature (implement according to OpenPhone's security requirements)
+// Verify webhook signature using timing-safe comparison
 function verifyWebhookSignature(req: VercelRequest): boolean {
-  // TODO: Implement signature verification
-  // const signature = req.headers['x-openphone-signature'];
-  // const timestamp = req.headers['x-openphone-timestamp'];
-  // Verify using OpenPhone's webhook secret
-  return true; // Placeholder - implement actual verification
+  const webhookSecret = process.env.OPENPHONE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('OPENPHONE_WEBHOOK_SECRET not configured');
+    return false;
+  }
+
+  // Get signature and timestamp from headers
+  const signature = req.headers['x-openphone-signature'] as string;
+  const timestamp = req.headers['x-openphone-timestamp'] as string;
+  
+  if (!signature || !timestamp) {
+    console.error('Missing signature or timestamp headers');
+    return false;
+  }
+
+  // Verify timestamp is recent (within 5 minutes)
+  const currentTime = Math.floor(Date.now() / 1000);
+  const webhookTime = parseInt(timestamp, 10);
+  if (Math.abs(currentTime - webhookTime) > 300) {
+    console.error('Webhook timestamp too old');
+    return false;
+  }
+
+  // Recreate the signature
+  const payload = `${timestamp}.${JSON.stringify(req.body)}`;
+  const expectedSignature = crypto
+    .createHmac('sha256', webhookSecret)
+    .update(payload)
+    .digest('hex');
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    );
+  } catch (error) {
+    console.error('Signature verification failed:', error);
+    return false;
+  }
 }
 
 // Look up client by phone number
